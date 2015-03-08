@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 
+class QStringList;
+
+
 namespace Ui {
 class MainWindow;
 }
@@ -17,6 +20,9 @@ public:
 
 private:
     Ui::MainWindow *ui;
+
+private slots:
+    void updatePlaylists(const QStringList &playlistNames);
 };
 
 #endif // MAINWINDOW_H

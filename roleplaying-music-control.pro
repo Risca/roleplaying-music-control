@@ -11,10 +11,15 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = roleplaying-music-control
 TEMPLATE = app
 
+LIBS += -lspotify
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    spotify.cpp \
+    appkey.c
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    spotify.h \
+    threadsafequeue.h
 
 FORMS    += mainwindow.ui
