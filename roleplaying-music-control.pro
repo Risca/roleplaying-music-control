@@ -16,10 +16,12 @@ LIBS += -lspotify
 SOURCES += main.cpp\
         mainwindow.cpp \
     spotify.cpp \
-    appkey.c
+    appkey.c \
+    spotify_ll.c
 
 HEADERS  += mainwindow.h \
     spotify.h \
-    threadsafequeue.h
+    threadsafequeue.h \
+    spotify_ll.h
 
 FORMS    += mainwindow.ui

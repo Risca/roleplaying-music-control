@@ -1,14 +1,18 @@
 #ifndef SPOTIFY_H
 #define SPOTIFY_H
 
+#include <QString>
 #include <QThread>
 
-class QString;
+#include "spotify_ll.h"
+#include "threadsafequeue.h"
+
 class QStringList;
 
 #ifdef __cplusplus
 extern "C" {
-struct sp_session;
+// Forward declarations
+typedef struct sp_session sp_session;
 }
 #endif
 
@@ -30,10 +34,13 @@ signals:
 private:
     void run();
     void compileNewListOfPlaylists();
+    void logout();
+    friend void eq_put(void * _obj, Event_t event);
 
     QString user;
     QString pass;
     sp_session *sp;
+    ThreadSafeQueue<Event_t> eq;
 };
 
 
