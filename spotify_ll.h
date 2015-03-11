@@ -9,6 +9,7 @@ extern "C" {
 
 // Forward declarations
 typedef struct sp_session sp_session;
+typedef struct sp_audioformat sp_audioformat;
 
 
 typedef enum {
@@ -18,10 +19,13 @@ typedef enum {
     EVENT_LOGGED_IN,
     EVENT_LOGGED_OUT,
     EVENT_PLAYLIST_CONTAINER_LOADED,
-} Event_t;
+    EVENT_URI_CHANGED,
+    EVENT_AUDIO_DATA_ARRIVED,
+} SpotifyEvent_t;
 
 
-sp_session * spotify_ll_init(void * obj, void (*queue_put_cb)(void *, Event_t));
+sp_session * spotify_ll_init(void * obj, void (*queue_put_cb)(void *, SpotifyEvent_t),
+                             int (*music_callback)(void *, sp_session *, const sp_audioformat *, const void *, int));
 void spotify_ll_setup_playlistcontainer(sp_session * sp);
 
 

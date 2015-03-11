@@ -2,12 +2,56 @@
 #include "spotify_ll.h"
 
 #include <libspotify/api.h>
+#include <QAudioOutput>
+#include <QBuffer>
 #include <QDebug>
+#include <QIODevice>
+#include <QMutexLocker>
 #include <QString>
 #include <QStringList>
+#include <QTimer>
+
+#include "spotifyaudioworker.h"
 
 
-void eq_put(void * obj, Event_t event)
+#define AUDIOSTREAM_UPDATE_INTERVAL 20
+#define BUFFER_SIZE 409600
+
+
+int music_delivery(void * obj,
+                   sp_session *,
+                   const sp_audioformat *format,
+                   const void *frames,
+                   int num_frames)
+{
+    if (num_frames == 0) {
+        return 0;
+    }
+
+    Spotify * _this = static_cast<Spotify*>(obj);
+    QMutexLocker locker(&_this->accessMutex);
+
+    _this->numChannels = format->channels;
+    _this->sampleRate = format->sample_rate;
+
+    if (!_this->audioBuffer.isOpen()) {
+        _this->audioBuffer.open(QIODevice::ReadWrite);
+    }
+
+    int availableFrames = (BUFFER_SIZE - (_this->writePos - _this->readPos)) / (sizeof(int16_t) * format->channels);
+    int writtenFrames = qMin(num_frames, availableFrames);
+
+    if (writtenFrames == 0)
+        return 0;
+
+    _this->audioBuffer.seek(_this->writePos);
+    _this->writePos += _this->audioBuffer.write((const char *) frames, writtenFrames * sizeof(int16_t) * format->channels);
+
+    return writtenFrames;
+}
+
+
+void eq_put(void * obj, SpotifyEvent_t event)
 {
     Spotify * _this = static_cast<Spotify*>(obj);
     _this->eq.put(event);
@@ -24,13 +68,32 @@ Spotify::~Spotify()
     if (sp) {
         sp_session_release(sp);
     }
+    audioThread.quit();
+    audioThread.wait();
+}
+
+qint64 Spotify::readAudioData(char *data, int maxSize)
+{
+    QMutexLocker locker(&accessMutex);
+    int toRead = qMin(writePos - readPos, maxSize);
+    audioBuffer.seek(readPos);
+    int read =  audioBuffer.read(data, toRead);
+    readPos += read;
+    return read;
+}
+
+void Spotify::playURI(const QString &URI)
+{
+    QMutexLocker locker(&accessMutex);
+    currentURI = URI;
+    eq.put(EVENT_URI_CHANGED);
 }
 
 void Spotify::run()
 {
     int next_timeout = 0;
 
-    sp = spotify_ll_init(this, eq_put);
+    sp = spotify_ll_init(this, eq_put, music_delivery);
     if (!sp) {
         return;
     }
@@ -42,7 +105,7 @@ void Spotify::run()
 
     bool running = true;
     while (running) {
-        Event_t ev;
+        SpotifyEvent_t ev;
         // Get next event (or timeout)
         if (next_timeout == 0) {
             eq.get(ev);
@@ -59,21 +122,49 @@ void Spotify::run()
             break;
 
         case EVENT_LOGGED_IN:
+            emit loggedIn();
             spotify_ll_setup_playlistcontainer(sp);
             break;
 
         case EVENT_PLAYLIST_CONTAINER_LOADED:
             compileNewListOfPlaylists();
-            logout();
+//            logout();
             break;
 
         case EVENT_LOGGED_OUT:
+            emit loggedOut();
             running = false;
             break;
 
+        case EVENT_URI_CHANGED:
+            changeCurrentlyPlayingSong();
+            break;
+
+        case EVENT_AUDIO_DATA_ARRIVED:
+#if 1
+            if (!audioThread.isRunning()) {
+                fprintf(stderr, "Starting audio worker\n");
+
+                QTimer * timer = new QTimer(0);
+                timer->setInterval(AUDIOSTREAM_UPDATE_INTERVAL);
+                timer->moveToThread(&audioThread);
+
+                SpotifyAudioWorker * audioWorker = new SpotifyAudioWorker(this);
+                audioWorker->moveToThread(&audioThread);
+
+                connect(&audioThread, SIGNAL(started()), audioWorker, SLOT(startStreaming()));
+                connect(&audioThread, SIGNAL(started()), timer, SLOT(start()));
+                connect(timer, SIGNAL(timeout()), audioWorker, SLOT(updateAudioBuffer()));
+                audioThread.start();
+            }
+#else
+            fprintf(stderr, "Got audio data, buffer is now %lld bytes\n", audioBuffer.size());
+            qDebug() << "Got audio data, buffer is now" << audioBuffer.size() << "bytes";
+#endif
+            break;
+
         default:
-            fprintf(stderr, "Unknown event (0x%02X)!\n", ev);
-            running = false;
+            qDebug() << "Unknown event:" << (int)ev;
             break;
         }
 
@@ -97,6 +188,53 @@ void Spotify::compileNewListOfPlaylists()
     emit playlistsUpdated(names);
 }
 
+void Spotify::changeCurrentlyPlayingSong()
+{
+    sp_error err;
+    sp_track * track;
+    const char * uri = currentURI.toLocal8Bit().constData();
+    fprintf(stderr, "Playing: %s\n", uri);
+
+    sp_link * link = sp_link_create_from_string(uri);
+    if (!link) {
+        qDebug() << "Failed to parse URI:" << currentURI;
+        currentURI.clear();
+        return;
+    }
+
+    switch (sp_link_type(link)) {
+    case SP_LINKTYPE_LOCALTRACK:
+    case SP_LINKTYPE_TRACK:
+        track = sp_link_as_track(link);
+        if (!track) {
+            fprintf(stderr, "Link is not a track\n");
+            break;
+        }
+
+        err = sp_session_player_load(sp, track);
+        if (err != SP_ERROR_OK) {
+            fprintf(stderr, "Failed to load URI (%s): %s\n", uri,
+                    sp_error_message(err));
+            break;
+        }
+
+        err = sp_session_player_play(sp, true);
+        if (err != SP_ERROR_OK) {
+            fprintf(stderr, "Failed to play URI (%s): %s\n", uri,
+                    sp_error_message(err));
+            break;
+        }
+        emit songLoaded();
+        break;
+
+    default:
+        qDebug() << "URI is not a track:" << currentURI;
+        break;
+    }
+
+    sp_link_release(link);
+}
+
 void Spotify::logout()
 {
     sp_error err = sp_session_logout(sp);
@@ -105,4 +243,28 @@ void Spotify::logout()
     } else {
         qDebug() << "Logout request posted";
     }
+}
+
+void Spotify::setNumChannels(int newChannelCount)
+{
+    QMutexLocker locker(&accessMutex);
+    numChannels = newChannelCount;
+}
+
+int Spotify::getNumChannels()
+{
+    QMutexLocker locker(&accessMutex);
+    return numChannels;
+}
+
+void Spotify::setSampleRate(int newSampleRate)
+{
+    QMutexLocker locker(&accessMutex);
+    sampleRate = newSampleRate;
+}
+
+int Spotify::getSampleRate()
+{
+    QMutexLocker locker(&accessMutex);
+    return sampleRate;
 }

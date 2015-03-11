@@ -2,9 +2,11 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTimer>
+#include <QThread>
 
 class QStringList;
-
+class Spotify;
 
 namespace Ui {
 class MainWindow;
@@ -20,9 +22,13 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    Spotify *spotify;
+    QTimer retryTimer;
+    QThread audioThread;
 
 private slots:
     void updatePlaylists(const QStringList &playlistNames);
+    void playSong();
 };
 
 #endif // MAINWINDOW_H

@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QTimer>
+
 #include "spotify.h"
 
 
@@ -10,10 +12,13 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    Spotify *sp = new Spotify("Foo", "bar");
-    connect(sp, SIGNAL(playlistsUpdated(QStringList)),
+    spotify = new Spotify("foo", "bar");
+    connect(spotify, SIGNAL(playlistsUpdated(QStringList)),
             this, SLOT(updatePlaylists(QStringList)));
-    sp->start();
+    connect(spotify, SIGNAL(songLoaded()), &retryTimer, SLOT(stop()));
+    spotify->start();
+
+    connect(&retryTimer, SIGNAL(timeout()), this, SLOT(playSong()));
 }
 
 MainWindow::~MainWindow()
@@ -25,4 +30,10 @@ void MainWindow::updatePlaylists(const QStringList &playlistNames)
 {
     ui->listWidget->clear();
     ui->listWidget->addItems(playlistNames);
+    retryTimer.start(1000);
+}
+
+void MainWindow::playSong()
+{
+    spotify->playURI("spotify:track:0GLSeEhW4eUhckJ66SQ4GX");
 }

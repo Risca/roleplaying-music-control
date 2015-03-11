@@ -15,7 +15,8 @@ extern "C" {
 extern const uint8_t g_appkey[];
 extern const size_t g_appkey_size;
 
-void (*eq_put)(void *, Event_t) = NULL;
+void (*eq_put)(void *, SpotifyEvent_t) = NULL;
+int (*music_delivery_cb)(void *, sp_session *, const sp_audioformat *, const void *, int) = NULL;
 void * _obj = NULL;
 
 
@@ -54,7 +55,6 @@ static sp_playlistcontainer_callbacks pc_callbacks = {
 static void logged_in(sp_session *sp, sp_error err)
 {
     if (err == SP_ERROR_OK) {
-        printf("Logged in! Loggin out.\n");
         eq_put(_obj, EVENT_LOGGED_IN);
     } else {
         fprintf(stderr, "Failed to login: %s\n",
@@ -85,6 +85,19 @@ static void logged_out(sp_session *sp)
 static void notify_main_thread(sp_session *sess)
 {
     eq_put(_obj, EVENT_SPOTIFY_MAIN_TICK);
+}
+
+/**
+ * This callback is used from libspotify whenever there is PCM data available.
+ *
+ * @sa sp_session_callbacks#music_delivery
+ */
+static int music_delivery(sp_session *sess, const sp_audioformat *format,
+                          const void *frames, int num_frames)
+{
+    int framesWritten = music_delivery_cb(_obj, sess, format, frames, num_frames);
+    eq_put(_obj, EVENT_AUDIO_DATA_ARRIVED);
+    return framesWritten;
 }
 
 /**
@@ -123,7 +136,7 @@ static sp_session_callbacks session_callbacks = {
     .connection_error = &log_error,
     .message_to_user = &log_message,
     .notify_main_thread = &notify_main_thread,
-    .music_delivery = NULL,
+    .music_delivery = &music_delivery,
     .play_token_lost = &dummy,
     .log_message = &log_message,
     .end_of_track = &dummy,
@@ -157,7 +170,8 @@ static sp_session_config spconfig = {
 };
 
 
-sp_session * spotify_ll_init(void * obj, void (*queue_put_cb)(void *, Event_t))
+sp_session * spotify_ll_init(void * obj, void (*queue_put_cb)(void *, SpotifyEvent_t),
+                             int (*music_callback)(void *, sp_session *, const sp_audioformat *, const void *, int))
 {
     sp_error err;
     sp_session *sp;
@@ -167,6 +181,7 @@ sp_session * spotify_ll_init(void * obj, void (*queue_put_cb)(void *, Event_t))
     }
     _obj = obj;
     eq_put = queue_put_cb;
+    music_delivery_cb = music_callback;
 
     spconfig.application_key_size = g_appkey_size;
 
