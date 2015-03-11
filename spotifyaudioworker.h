@@ -18,13 +18,14 @@ public:
 
 public slots:
     void startStreaming();
-    void updateAudioBuffer();
 
 private:
     Spotify * spotify;
     QIODevice * audioIODevice;
     QAudioOutput * ao;
 
+private slots:
+    void updateAudioBuffer();
 };
 
 #endif // SPOTIFYAUDIOWORKER_H

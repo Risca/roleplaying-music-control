@@ -7,6 +7,7 @@
 #include "spotify.h"
 
 
+#define AUDIOSTREAM_UPDATE_INTERVAL 20
 #define BUFFER_SIZE 409600
 
 
@@ -44,6 +45,9 @@ void SpotifyAudioWorker::startStreaming()
         ao->setBufferSize(BUFFER_SIZE);
         audioIODevice = ao->start();
         ao->suspend();
+        QTimer * timer = new QTimer(this);
+        connect(timer, SIGNAL(timeout()), this, SLOT(updateAudioBuffer()));
+        timer->start(AUDIOSTREAM_UPDATE_INTERVAL);
         fprintf(stderr, "Start audio streaming\n");
     }
 }
@@ -63,9 +67,8 @@ void SpotifyAudioWorker::updateAudioBuffer()
     audioIODevice->write(data, bytesRead);
 
     static int count = 0;
-    if ((++count % 100) == 0) {
+    if ((count++ % 100) == 0) {
         fprintf(stderr, "Updating audio buffer (%d)\n", bytesRead);
-        qDebug() << "updating audio buffer";
     }
 
 }

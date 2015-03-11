@@ -14,7 +14,6 @@
 #include "spotifyaudioworker.h"
 
 
-#define AUDIOSTREAM_UPDATE_INTERVAL 20
 #define BUFFER_SIZE 409600
 
 
@@ -145,16 +144,9 @@ void Spotify::run()
             if (!audioThread.isRunning()) {
                 fprintf(stderr, "Starting audio worker\n");
 
-                QTimer * timer = new QTimer(0);
-                timer->setInterval(AUDIOSTREAM_UPDATE_INTERVAL);
-                timer->moveToThread(&audioThread);
-
                 SpotifyAudioWorker * audioWorker = new SpotifyAudioWorker(this);
                 audioWorker->moveToThread(&audioThread);
-
                 connect(&audioThread, SIGNAL(started()), audioWorker, SLOT(startStreaming()));
-                connect(&audioThread, SIGNAL(started()), timer, SLOT(start()));
-                connect(timer, SIGNAL(timeout()), audioWorker, SLOT(updateAudioBuffer()));
                 audioThread.start();
             }
 #else
