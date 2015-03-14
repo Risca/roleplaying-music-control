@@ -43,7 +43,6 @@ signals:
     void loggedOut();
     void songLoaded();
     void playlistsUpdated(const QStringList &);
-    void newAudioDataReady();
 
 private:
     void run();
@@ -83,6 +82,16 @@ private:
      * Called when the currently played track has reached its end
      */
     void endOfTrackCb(sp_session *sp);
+
+    /**
+     * Called when audio playback should start
+     */
+    void startPlaybackCb(sp_session *sp);
+
+    /**
+     * Called when audio playback should stop
+     */
+    void stopPlaybackCb(sp_session *sp);
 
     /**
      * Called to query application about its audio buffer

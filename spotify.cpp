@@ -93,21 +93,25 @@ void Spotify::run()
             tryLoadTrack();
             break;
 
-        case EVENT_AUDIO_DATA_ARRIVED:
+        case EVENT_START_PLAYBACK:
             if (!audioThread.isRunning()) {
                 fprintf(stderr, "Spotify: Starting audio worker\n");
 
                 SpotifyAudioWorker * audioWorker = new SpotifyAudioWorker(this);
                 audioWorker->moveToThread(&audioThread);
-                connect(this, SIGNAL(newAudioDataReady()),
-                        audioWorker, SLOT(updateAudioBuffer()));
                 connect(&audioThread, SIGNAL(started()),
                         audioWorker, SLOT(startStreaming()));
                 connect(&audioThread, SIGNAL(finished()),
                         audioWorker, SLOT(deleteLater()));
                 audioThread.start();
             }
-            emit newAudioDataReady();
+            break;
+
+        case EVENT_STOP_PLAYBACK:
+            if (audioThread.isRunning()) {
+                audioThread.quit();
+                audioThread.wait();
+            }
             break;
 
         case EVENT_END_OF_TRACK:
@@ -115,10 +119,6 @@ void Spotify::run()
             sp_track_release(currentTrack);
             currentTrack = 0;
             isPlaying = false;
-            if (audioThread.isRunning()) {
-                audioThread.quit();
-                audioThread.wait();
-            }
             break;
 
         default:
@@ -321,20 +321,28 @@ int Spotify::musicDeliveryCb(sp_session *, const sp_audioformat *format,
     int writtenFrames = qMin(num_frames, availableFrames);
 
     if (writtenFrames == 0) {
-        goto out;
+        return 0;
     }
 
     audioBuffer.seek(writePos);
     writePos += audioBuffer.write((const char *) frames, writtenFrames * sizeof(int16_t) * format->channels);
 
-out:
-    eq.put(EVENT_AUDIO_DATA_ARRIVED);
     return writtenFrames;
 }
 
 void Spotify::endOfTrackCb(sp_session *sp)
 {
     eq.put(EVENT_END_OF_TRACK);
+}
+
+void Spotify::startPlaybackCb(sp_session *)
+{
+    eq.put(EVENT_START_PLAYBACK);
+}
+
+void Spotify::stopPlaybackCb(sp_session *)
+{
+    eq.put(EVENT_STOP_PLAYBACK);
 }
 
 void Spotify::getAudioBufferStatsCb(sp_session *, sp_audio_buffer_stats *stats)

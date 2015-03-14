@@ -26,8 +26,8 @@ void Spotify_Wrapper::init(Spotify *spotifyPointer)
     spCallbacks.end_of_track = &end_of_track;
     spCallbacks.streaming_error = &log_error;
     spCallbacks.userinfo_updated = &dummy;
-    spCallbacks.start_playback = &dummy;
-    spCallbacks.stop_playback = &dummy;
+    spCallbacks.start_playback = &start_playback;
+    spCallbacks.stop_playback = &stop_playback;
     spCallbacks.get_audio_buffer_stats = &get_audio_buffer_stats;
     spCallbacks.offline_status_updated = &dummy;
     spCallbacks.offline_error = &log_error;
@@ -87,6 +87,16 @@ int Spotify_Wrapper::music_delivery(sp_session *sp, const sp_audioformat *format
 void Spotify_Wrapper::end_of_track(sp_session *sp)
 {
     s->endOfTrackCb(sp);
+}
+
+void Spotify_Wrapper::start_playback(sp_session *sp)
+{
+    s->startPlaybackCb(sp);
+}
+
+void Spotify_Wrapper::stop_playback(sp_session *sp)
+{
+    s->stopPlaybackCb(sp);
 }
 
 void Spotify_Wrapper::get_audio_buffer_stats(sp_session *sp, sp_audio_buffer_stats *stats)

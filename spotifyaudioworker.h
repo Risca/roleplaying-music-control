@@ -19,7 +19,6 @@ public:
 
 public slots:
     void startStreaming();
-    void updateAudioBuffer();
 
 private:
     Spotify * spotify;
@@ -28,6 +27,7 @@ private:
 
 private slots:
     void handleStateChanged(QAudio::State newState);
+    void updateAudioBuffer();
 };
 
 #endif // SPOTIFYAUDIOWORKER_H

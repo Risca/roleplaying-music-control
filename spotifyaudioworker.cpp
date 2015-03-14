@@ -3,6 +3,7 @@
 #include <QAudioOutput>
 #include <QDebug>
 #include <QIODevice>
+#include <QTimer>
 
 #include "spotify.h"
 
@@ -50,6 +51,11 @@ void SpotifyAudioWorker::startStreaming()
                 this, SLOT(handleStateChanged(QAudio::State)));
         audioIODevice = ao->start();
         ao->suspend();
+
+        QTimer * timer = new QTimer(this);
+        connect(timer, SIGNAL(timeout()), this, SLOT(updateAudioBuffer()));
+        timer->start(AUDIOSTREAM_UPDATE_INTERVAL);
+
         fprintf(stderr, "SpotifyAudioWorker: Start audio streaming\n");
     }
 }
