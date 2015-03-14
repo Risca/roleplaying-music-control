@@ -31,6 +31,7 @@ private:
     static int music_delivery(sp_session *sp, const sp_audioformat *format,
                               const void *frames, int num_frames);
     static void end_of_track(sp_session *sp);
+    static void get_audio_buffer_stats(sp_session *sp, sp_audio_buffer_stats *stats);
     static void log_error(sp_session *sp, sp_error err);
     static void log_message(sp_session *sp, const char * data);
     static void dummy(sp_session*) {}

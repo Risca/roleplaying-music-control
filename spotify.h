@@ -85,6 +85,11 @@ private:
     void endOfTrackCb(sp_session *sp);
 
     /**
+     * Called to query application about its audio buffer
+     */
+    void getAudioBufferStatsCb(sp_session *sp, sp_audio_buffer_stats *stats);
+
+    /**
      * This callback is called whenever an error occurs
      */
     void logErrorCb(sp_session *sp, sp_error err);

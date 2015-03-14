@@ -337,6 +337,16 @@ void Spotify::endOfTrackCb(sp_session *sp)
     eq.put(EVENT_END_OF_TRACK);
 }
 
+void Spotify::getAudioBufferStatsCb(sp_session *, sp_audio_buffer_stats *stats)
+{
+    QMutexLocker locker(&accessMutex);
+    stats->stutter = 0; /// @todo Fill in number of audio dropouts
+    // I think it wants number of frames in buffer
+    if (numChannels) {
+        stats->samples = (writePos - readPos) / (sizeof(int16_t) * numChannels);
+    }
+}
+
 void Spotify::logErrorCb(sp_session *sp, sp_error err)
 {
     fprintf(stderr, "An error occured: %s\n",
