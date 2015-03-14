@@ -1,6 +1,7 @@
 #ifndef SPOTIFYAUDIOWORKER_H
 #define SPOTIFYAUDIOWORKER_H
 
+#include <QAudio>
 #include <QObject>
 #include <QTimer>
 
@@ -18,6 +19,7 @@ public:
 
 public slots:
     void startStreaming();
+    void updateAudioBuffer();
 
 private:
     Spotify * spotify;
@@ -25,7 +27,7 @@ private:
     QAudioOutput * ao;
 
 private slots:
-    void updateAudioBuffer();
+    void handleStateChanged(QAudio::State newState);
 };
 
 #endif // SPOTIFYAUDIOWORKER_H

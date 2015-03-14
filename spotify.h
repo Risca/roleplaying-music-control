@@ -43,6 +43,7 @@ signals:
     void loggedOut();
     void songLoaded();
     void playlistsUpdated(const QStringList &);
+    void newAudioDataReady();
 
 private:
     void run();

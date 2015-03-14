@@ -58,7 +58,13 @@ void eq_put(void * obj, SpotifyEvent_t event)
 
 
 Spotify::Spotify(const QString &username, const QString &password) :
-    user(username), pass(password), sp(0)
+    user(username),
+    pass(password),
+    writePos(0),
+    readPos(0),
+    numChannels(0),
+    sampleRate(0),
+    sp(0)
 {
 }
 
@@ -77,7 +83,11 @@ qint64 Spotify::readAudioData(char *data, int maxSize)
     int toRead = qMin(writePos - readPos, maxSize);
     audioBuffer.seek(readPos);
     int read =  audioBuffer.read(data, toRead);
-    readPos += read;
+    if (read < 0) {
+        fprintf(stderr, "Spotify: Failed to read from audioBuffer\n");
+    } else {
+        readPos += read;
+    }
     return read;
 }
 
@@ -140,19 +150,18 @@ void Spotify::run()
             break;
 
         case EVENT_AUDIO_DATA_ARRIVED:
-#if 1
             if (!audioThread.isRunning()) {
-                fprintf(stderr, "Starting audio worker\n");
+                fprintf(stderr, "Spotify: Starting audio worker\n");
 
                 SpotifyAudioWorker * audioWorker = new SpotifyAudioWorker(this);
                 audioWorker->moveToThread(&audioThread);
-                connect(&audioThread, SIGNAL(started()), audioWorker, SLOT(startStreaming()));
+                connect(this, SIGNAL(newAudioDataReady()),
+                        audioWorker, SLOT(updateAudioBuffer()));
+                connect(&audioThread, SIGNAL(started()),
+                        audioWorker, SLOT(startStreaming()));
                 audioThread.start();
             }
-#else
-            fprintf(stderr, "Got audio data, buffer is now %lld bytes\n", audioBuffer.size());
-            qDebug() << "Got audio data, buffer is now" << audioBuffer.size() << "bytes";
-#endif
+            emit newAudioDataReady();
             break;
 
         default:

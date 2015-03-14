@@ -43,12 +43,38 @@ void SpotifyAudioWorker::startStreaming()
 
         ao = new QAudioOutput(af);
         ao->setBufferSize(BUFFER_SIZE);
+        connect(ao, SIGNAL(stateChanged(QAudio::State)),
+                this, SLOT(handleStateChanged(QAudio::State)));
         audioIODevice = ao->start();
         ao->suspend();
-        QTimer * timer = new QTimer(this);
-        connect(timer, SIGNAL(timeout()), this, SLOT(updateAudioBuffer()));
-        timer->start(AUDIOSTREAM_UPDATE_INTERVAL);
-        fprintf(stderr, "Start audio streaming\n");
+        fprintf(stderr, "SpotifyAudioWorker: Start audio streaming\n");
+    }
+}
+
+void SpotifyAudioWorker::handleStateChanged(QAudio::State newState)
+{
+    switch (newState) {
+    case QAudio::IdleState:
+        // Finished playing (no more data)
+        fprintf(stderr, "SpotifyAudioWorker: Finished playing (no more data)\n");
+        break;
+
+    case QAudio::StoppedState:
+        // Stopped for other reasons
+        fprintf(stderr, "SpotifyAudioWorker: entered stopped state\n");
+        if (ao->error() != QAudio::NoError) {
+            fprintf(stderr, "SpotifyAudioWorker: error code %d\n",
+                    (int)ao->error());
+        }
+        break;
+
+    case QAudio::ActiveState:
+        fprintf(stderr, "SpotifyAudioWorker: entered active state\n");
+        break;
+
+    case QAudio::SuspendedState:
+        fprintf(stderr, "SpotifyAudioWorker: entered suspended state\n");
+        break;
     }
 }
 
@@ -64,11 +90,13 @@ void SpotifyAudioWorker::updateAudioBuffer()
     int bytesFree = ao->bytesFree();
     char data[bytesFree];
     int bytesRead = spotify->readAudioData(data, bytesFree);
-    audioIODevice->write(data, bytesRead);
+    if (bytesRead > 0) {
+        audioIODevice->write(data, bytesRead);
+    }
 
     static int count = 0;
     if ((count++ % 100) == 0) {
-        fprintf(stderr, "Updating audio buffer (%d)\n", bytesRead);
+        fprintf(stderr, "SpotifyAudioWorker: Updating audio buffer (%d)\n",
+                bytesRead);
     }
-
 }
