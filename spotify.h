@@ -51,12 +51,65 @@ private:
     void logout();
     void setNumChannels(int newChannelCount);
     void setSampleRate(int newSampleRate);
-    friend void eq_put(void * _obj, SpotifyEvent_t event);
-    friend int music_delivery(void * obj,
-                              sp_session *sess,
-                              const sp_audioformat *format,
-                              const void *frames,
-                              int num_frames);
+
+    /* ---------------------------  SESSION CALLBACKS  ------------------------- */
+    friend class Spotify_Wrapper;
+    /**
+     * This callback is called when an attempt to login has succeeded or failed.
+     */
+    void loggedInCb(sp_session *sp, sp_error err);
+
+    /**
+     * This callback is called when logout has been processed.
+     */
+    void loggedOutCb(sp_session *sp);
+
+    void metadataUpdatedCb(sp_session *sp);
+
+    /**
+     * This callback is called from an internal libspotify thread to ask us to
+     * reiterate the main loop.
+     */
+    void notifyMainThreadCb(sp_session *sess);
+
+    /**
+     * This callback is used from libspotify whenever there is PCM data available.
+     */
+    int musicDeliveryCb(sp_session *sess, const sp_audioformat *format,
+                        const void *frames, int num_frames);
+
+    /**
+     * Called when the currently played track has reached its end
+     */
+    void endOfTrackCb(sp_session *sp);
+
+    /**
+     * This callback is called whenever an error occurs
+     */
+    void logErrorCb(sp_session *sp, sp_error err);
+
+    /**
+     * This callback is called whenever there is a message to log.
+     */
+    void logMessageCb(sp_session *sp, const char * data);
+
+
+    /* ------------------- PLAYLIST CONTAINER ON CALLBACKS  -------------------- */
+    /**
+     * Called when a new playlist is added.
+     */
+    void playlistAddedCb(sp_playlistcontainer * pc, sp_playlist * playlist, int position, void * userdata);
+
+    /**
+     * Called when a playlist is removed.
+     */
+    void playlistRemovedCb(sp_playlistcontainer * pc, sp_playlist * playlist, int position, void * userdata);
+
+    /**
+     * Called when the playlist container is loaded
+     */
+    void playlistcontainerLoadedCb(sp_playlistcontainer * pc, void * userdata);
+
 
     QString user;
     QString pass;

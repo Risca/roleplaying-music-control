@@ -4,12 +4,8 @@
 extern "C" {
 #endif // __cplusplus
 
-
+#include <libspotify/api.h>
 #include <stdbool.h>
-
-// Forward declarations
-typedef struct sp_session sp_session;
-typedef struct sp_audioformat sp_audioformat;
 
 
 typedef enum {
@@ -22,12 +18,11 @@ typedef enum {
     EVENT_URI_CHANGED,
     EVENT_AUDIO_DATA_ARRIVED,
     EVENT_END_OF_TRACK,
+    EVENT_METADATA_UPDATED,
 } SpotifyEvent_t;
 
 
-sp_session * spotify_ll_init(void * obj, void (*queue_put_cb)(void *, SpotifyEvent_t),
-                             int (*music_callback)(void *, sp_session *, const sp_audioformat *, const void *, int));
-void spotify_ll_setup_playlistcontainer(sp_session * sp);
+sp_session * spotify_ll_init(sp_session_callbacks *session_callbacks);
 
 
 #ifdef __cplusplus

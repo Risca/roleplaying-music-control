@@ -12,7 +12,7 @@
 
 
 SpotifyAudioWorker::SpotifyAudioWorker(Spotify * spotify) :
-    QObject(spotify),
+    QObject(0),
     spotify(spotify),
     audioIODevice(0),
     ao(0)
@@ -21,8 +21,11 @@ SpotifyAudioWorker::SpotifyAudioWorker(Spotify * spotify) :
 
 SpotifyAudioWorker::~SpotifyAudioWorker()
 {
-    delete audioIODevice;
+    if (ao) {
+        ao->stop();
+    }
     delete ao;
+    fprintf(stderr, "SpotifyAudioWorker:~SpotifyAudioWorker\n");
 }
 
 void SpotifyAudioWorker::startStreaming()
