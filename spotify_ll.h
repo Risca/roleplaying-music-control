@@ -21,6 +21,7 @@ typedef enum {
     EVENT_PLAYLIST_CONTAINER_LOADED,
     EVENT_URI_CHANGED,
     EVENT_AUDIO_DATA_ARRIVED,
+    EVENT_END_OF_TRACK,
 } SpotifyEvent_t;
 
 

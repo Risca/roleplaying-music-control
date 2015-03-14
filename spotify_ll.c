@@ -101,9 +101,19 @@ static int music_delivery(sp_session *sess, const sp_audioformat *format,
 }
 
 /**
+ * Called when the currently played track has reached its end
+ *
+ * @sa sp_session_callbacks#end_of_track
+ */
+static void end_of_track(sp_session *sp)
+{
+    eq_put(_obj, EVENT_END_OF_TRACK);
+}
+
+/**
  * This callback is called whenever an error occurs
  *
- * @sa sp_session_callbacks#logged_out
+ * @sa sp_session_callbacks#log_error
  */
 static void log_error(sp_session *sp, sp_error err)
 {
@@ -114,7 +124,7 @@ static void log_error(sp_session *sp, sp_error err)
 /**
  * This callback is called whenever there is a message to log.
  *
- * @sa sp_session_callbacks#logged_out
+ * @sa sp_session_callbacks#log_message
  */
 static void log_message(sp_session *sp, const char * data)
 {
@@ -139,7 +149,7 @@ static sp_session_callbacks session_callbacks = {
     .music_delivery = &music_delivery,
     .play_token_lost = &dummy,
     .log_message = &log_message,
-    .end_of_track = &dummy,
+    .end_of_track = &end_of_track,
     .streaming_error = &log_error,
     .userinfo_updated = &dummy,
     .start_playback = &dummy,
