@@ -20,6 +20,8 @@
 Spotify::Spotify(const QString &username, const QString &password) :
     user(username),
     pass(password),
+    currentTrack(0),
+    isPlaying(false),
     writePos(0),
     readPos(0),
     numChannels(0),
@@ -87,6 +89,10 @@ void Spotify::run()
             changeCurrentlyPlayingSong();
             break;
 
+        case EVENT_METADATA_UPDATED:
+            tryLoadTrack();
+            break;
+
         case EVENT_AUDIO_DATA_ARRIVED:
             if (!audioThread.isRunning()) {
                 fprintf(stderr, "Spotify: Starting audio worker\n");
@@ -106,6 +112,9 @@ void Spotify::run()
 
         case EVENT_END_OF_TRACK:
             sp_session_player_unload(sp);
+            sp_track_release(currentTrack);
+            currentTrack = 0;
+            isPlaying = false;
             if (audioThread.isRunning()) {
                 audioThread.quit();
                 audioThread.wait();
@@ -139,7 +148,6 @@ void Spotify::compileNewListOfPlaylists()
 
 void Spotify::changeCurrentlyPlayingSong()
 {
-    sp_error err;
     sp_track * track;
     const char * uri = currentURI.toLocal8Bit().constData();
     fprintf(stderr, "Spotify: Playing %s\n", uri);
@@ -159,21 +167,12 @@ void Spotify::changeCurrentlyPlayingSong()
             fprintf(stderr, "Link is not a track\n");
             break;
         }
-
-        err = sp_session_player_load(sp, track);
-        if (err != SP_ERROR_OK) {
-            fprintf(stderr, "Failed to load URI (%s): 0x%02X %s\n", uri,
-                    (unsigned)err, sp_error_message(err));
-            break;
+        if (currentTrack) {
+            sp_track_release(currentTrack);
         }
-
-        err = sp_session_player_play(sp, true);
-        if (err != SP_ERROR_OK) {
-            fprintf(stderr, "Failed to play URI (%s): %s\n", uri,
-                    sp_error_message(err));
-            break;
-        }
-        emit songLoaded();
+        currentTrack = track;
+        sp_track_add_ref(currentTrack);
+        tryLoadTrack();
         break;
 
     default:
@@ -237,6 +236,38 @@ void Spotify::setSampleRate(int newSampleRate)
 {
     QMutexLocker locker(&accessMutex);
     sampleRate = newSampleRate;
+}
+
+void Spotify::tryLoadTrack()
+{
+    sp_error err;
+    if (isPlaying || (currentTrack == 0)) {
+        return;
+    }
+
+    err = sp_track_error(currentTrack);
+    if (err != SP_ERROR_OK) {
+        return;
+    }
+
+    err = sp_session_player_load(sp, currentTrack);
+    if (err != SP_ERROR_OK) {
+        fprintf(stderr, "Failed to load URI (%s): 0x%02X %s\n",
+                currentURI.toLocal8Bit().constData(),
+                (unsigned)err, sp_error_message(err));
+        return;
+    }
+
+    err = sp_session_player_play(sp, true);
+    if (err != SP_ERROR_OK) {
+        fprintf(stderr, "Failed to play URI (%s): %s\n",
+                currentURI.toLocal8Bit().constData(),
+                sp_error_message(err));
+        return;
+    }
+
+    isPlaying = true;
+    emit songLoaded();
 }
 
 void Spotify::loggedInCb(sp_session *sp, sp_error err)

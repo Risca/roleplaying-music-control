@@ -51,6 +51,7 @@ private:
     void logout();
     void setNumChannels(int newChannelCount);
     void setSampleRate(int newSampleRate);
+    void tryLoadTrack();
 
     /* ---------------------------  SESSION CALLBACKS  ------------------------- */
     friend class Spotify_Wrapper;
@@ -114,6 +115,8 @@ private:
     QString user;
     QString pass;
     QString currentURI;
+    sp_track * currentTrack;
+    bool isPlaying;
     QMutex accessMutex;
     QBuffer audioBuffer;
     int writePos, readPos;
