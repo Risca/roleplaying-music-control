@@ -17,9 +17,10 @@ MainWindow::MainWindow(QWidget *parent) :
             this, SLOT(updatePlaylists(QStringList)));
     connect(ui->comboBox, SIGNAL(currentIndexChanged(int)),
             spotify, SLOT(changePlaylist(int)));
-    connect(spotify, SIGNAL(currentPlaylistUpdated(QStringList)),
-            this, SLOT(updateTracks(QStringList)));
-    connect(spotify, SIGNAL(loggedIn()), this, SLOT(playSong()));
+    connect(ui->listWidget, SIGNAL(doubleClicked(QModelIndex)),
+            this, SLOT(playTrack(QModelIndex)));
+    connect(spotify, SIGNAL(currentPlaylistUpdated(QList<SpotifyTrackInfo>)),
+            this, SLOT(updateTracks(QList<SpotifyTrackInfo>)));
     spotify->start();
 }
 
@@ -34,13 +35,29 @@ void MainWindow::updatePlaylists(const QStringList &playlistNames)
     ui->comboBox->addItems(playlistNames);
 }
 
-void MainWindow::updateTracks(const QStringList &trackList)
+void MainWindow::updateTracks(const QList<SpotifyTrackInfo> &trackList)
 {
     ui->listWidget->clear();
-    ui->listWidget->addItems(trackList);
+    QList<SpotifyTrackInfo>::const_iterator it = trackList.constBegin();
+    while (it != trackList.constEnd()) {
+        QListWidgetItem *item = new QListWidgetItem(it->name);
+        item->setData(Qt::UserRole, it->URI);
+        ui->listWidget->addItem(item);
+        ++it;
+    }
 }
 
-void MainWindow::playSong()
+void MainWindow::playTrack(const QModelIndex &index)
 {
-    spotify->playURI("spotify:track:0GLSeEhW4eUhckJ66SQ4GX");
+    QListWidgetItem *item = ui->listWidget->item(index.row());
+    if (!item) {
+        return;
+    }
+
+    QVariant uri = item->data(Qt::UserRole);
+    if (!uri.canConvert<QString>()) {
+        return;
+    }
+
+    spotify->playURI(uri.toString());
 }

@@ -3,10 +3,12 @@
 
 #include <QAudioOutput>
 #include <QBuffer>
+#include <QList>
 #include <QMutex>
 #include <QString>
 #include <QThread>
 
+#include "spotifytrackinfo.h"
 #include "spotify_ll.h"
 #include "threadsafequeue.h"
 
@@ -43,7 +45,7 @@ signals:
     void loggedOut();
     void songLoaded();
     void playlistsUpdated(const QStringList &);
-    void currentPlaylistUpdated(const QStringList &);
+    void currentPlaylistUpdated(const QList<SpotifyTrackInfo> &);
 
 private:
     void run();
@@ -55,6 +57,7 @@ private:
     void setSampleRate(int newSampleRate);
     void tryLoadTrack();
     void tryLoadPlaylist();
+    QString uriFromTrack(sp_track * track);
 
     /* ---------------------------  SESSION CALLBACKS  ------------------------- */
     friend class Spotify_Wrapper;

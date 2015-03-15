@@ -160,7 +160,7 @@ void Spotify::changeCurrentlyPlayingSong()
 
     sp_link * link = sp_link_create_from_string(uri);
     if (!link) {
-        qDebug() << "Failed to parse URI:" << currentURI;
+        fprintf(stderr, "Spotify: failed to parse URI (%s)\n", uri);
         currentURI.clear();
         return;
     }
@@ -307,6 +307,8 @@ void Spotify::tryLoadTrack()
 
     err = sp_track_error(currentTrack);
     if (err != SP_ERROR_OK) {
+        fprintf(stderr, "Spotify: track error: %s\n",
+                sp_error_message(err));
         return;
     }
 
@@ -337,7 +339,7 @@ void Spotify::tryLoadPlaylist()
     }
 
     if (sp_playlist_is_loaded(currentPlaylist)) {
-        QStringList tracks;
+        QList<SpotifyTrackInfo> tracks;
 
         int numTracks = sp_playlist_num_tracks(currentPlaylist);
         for (int idx = 0; idx < numTracks; ++idx) {
@@ -351,16 +353,50 @@ void Spotify::tryLoadPlaylist()
             if (name.isEmpty()) {
                 fprintf(stderr, "Spotify: got empty track name\n");
                 continue;
+            }            
+
+            SpotifyTrackInfo info;
+            info.name = name;
+            info.URI = uriFromTrack(track);
+            if (info.URI.isEmpty()) {
+                continue;
             }
 
-            tracks.append(name);
+            tracks.append(info);
         }
 
         emit currentPlaylistUpdated(tracks);
 
-        fprintf(stderr, "Spotify: loaded playlist %s\n",
-                sp_playlist_name(currentPlaylist));
+        fprintf(stderr, "Spotify: loaded playlist %s (%d tracks)\n",
+                sp_playlist_name(currentPlaylist),
+                tracks.size());
     }
+}
+
+QString Spotify::uriFromTrack(sp_track *track)
+{
+    sp_link * link = sp_link_create_from_track(track, 0);
+    if (!link) {
+        fprintf(stderr, "Spotify: failed to create URI for track");
+        return QString();
+    }
+
+    static int bufSize = 128;
+    char * buf = new char[bufSize];
+    int uriSize = sp_link_as_string(link, buf, bufSize);
+    while (uriSize >= bufSize) {
+        // String truncated, increase buf size and try again
+        bufSize = uriSize + 1;
+        delete [] buf;
+        buf = new char[bufSize];
+        uriSize = sp_link_as_string(link, buf, bufSize);
+    }
+    bufSize = uriSize + 1;
+
+    QString uri = QString::fromLocal8Bit(buf, uriSize);
+    delete [] buf;
+    sp_link_release(link);
+    return uri;
 }
 
 void Spotify::loggedInCb(sp_session *sp, sp_error err)

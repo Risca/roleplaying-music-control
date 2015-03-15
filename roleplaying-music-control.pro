@@ -27,6 +27,7 @@ HEADERS  += mainwindow.h \
     spotify/spotify.h \
     spotify/spotify_ll.h \
     spotify/spotifyaudioworker.h \
-    spotify/spotify_wrapper.h
+    spotify/spotify_wrapper.h \
+    spotify/spotifytrackinfo.h
 
 FORMS    += mainwindow.ui
