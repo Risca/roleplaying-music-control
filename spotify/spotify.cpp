@@ -20,10 +20,10 @@
 Spotify::Spotify(const QString &username, const QString &password) :
     user(username),
     pass(password),
+    nextTrack(0),
     currentTrack(0),
     currentPlaylistIdx(-1),
     currentPlaylist(0),
-    isPlaying(false),
     writePos(0),
     readPos(0),
     numChannels(0),
@@ -118,13 +118,19 @@ void Spotify::run()
                 audioThread.quit();
                 audioThread.wait();
             }
+            accessMutex.lock();
+            audioBuffer.close();
+            readPos = 0;
+            writePos = 0;
+            accessMutex.unlock();
             break;
 
         case EVENT_END_OF_TRACK:
             sp_session_player_unload(sp);
             sp_track_release(currentTrack);
+            currentURI.clear();
+            nextTrack = 0;
             currentTrack = 0;
-            isPlaying = false;
             break;
 
         default:
@@ -173,11 +179,8 @@ void Spotify::changeCurrentlyPlayingSong()
             fprintf(stderr, "Link is not a track\n");
             break;
         }
-        if (currentTrack) {
-            sp_track_release(currentTrack);
-        }
-        currentTrack = track;
-        sp_track_add_ref(currentTrack);
+        nextTrack = track;
+        sp_track_add_ref(track);
         tryLoadTrack();
         break;
 
@@ -301,18 +304,29 @@ void Spotify::setSampleRate(int newSampleRate)
 void Spotify::tryLoadTrack()
 {
     sp_error err;
-    if (isPlaying || (currentTrack == 0)) {
+    if (nextTrack == 0) {
         return;
     }
 
-    err = sp_track_error(currentTrack);
+    if (currentTrack == nextTrack) {
+        return;
+    }
+
+    err = sp_track_error(nextTrack);
     if (err != SP_ERROR_OK) {
         fprintf(stderr, "Spotify: track error: %s\n",
                 sp_error_message(err));
         return;
     }
 
-    err = sp_session_player_load(sp, currentTrack);
+    err = sp_session_player_unload(sp);
+    if (err != SP_ERROR_OK) {
+        fprintf(stderr, "Failed to unload player: 0x%02X %s\n",
+                (unsigned)err, sp_error_message(err));
+        return;
+    }
+
+    err = sp_session_player_load(sp, nextTrack);
     if (err != SP_ERROR_OK) {
         fprintf(stderr, "Failed to load URI (%s): 0x%02X %s\n",
                 currentURI.toLocal8Bit().constData(),
@@ -328,7 +342,11 @@ void Spotify::tryLoadTrack()
         return;
     }
 
-    isPlaying = true;
+    if (currentTrack) {
+        sp_track_release(currentTrack);
+    }
+    currentTrack = nextTrack;
+
     emit songLoaded();
 }
 

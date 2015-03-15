@@ -143,10 +143,10 @@ private:
     QString user;
     QString pass;
     QString currentURI;
+    sp_track * nextTrack;
     sp_track * currentTrack;
     int currentPlaylistIdx;
     sp_playlist * currentPlaylist;
-    bool isPlaying;
     QMutex accessMutex;
     QBuffer audioBuffer;
     int writePos, readPos;
