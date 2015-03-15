@@ -4,7 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT      += core gui multimedia
+CONFIG  += console
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -17,11 +18,15 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     spotify.cpp \
     appkey.c \
-    spotify_ll.c
+    spotify_ll.c \
+    spotifyaudioworker.cpp \
+    spotify_wrapper.cpp
 
 HEADERS  += mainwindow.h \
     spotify.h \
     threadsafequeue.h \
-    spotify_ll.h
+    spotify_ll.h \
+    spotifyaudioworker.h \
+    spotify_wrapper.h
 
 FORMS    += mainwindow.ui
