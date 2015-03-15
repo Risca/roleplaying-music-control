@@ -3,7 +3,7 @@
 
 #include <QTimer>
 
-#include "spotify.h"
+#include "spotify/spotify.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :

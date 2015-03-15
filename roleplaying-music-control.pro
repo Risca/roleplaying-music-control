@@ -16,17 +16,17 @@ LIBS += -lspotify
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    spotify.cpp \
-    appkey.c \
-    spotify_ll.c \
-    spotifyaudioworker.cpp \
-    spotify_wrapper.cpp
+    spotify/appkey.c \
+    spotify/spotify.cpp \
+    spotify/spotify_ll.c \
+    spotify/spotifyaudioworker.cpp \
+    spotify/spotify_wrapper.cpp
 
 HEADERS  += mainwindow.h \
-    spotify.h \
     threadsafequeue.h \
-    spotify_ll.h \
-    spotifyaudioworker.h \
-    spotify_wrapper.h
+    spotify/spotify.h \
+    spotify/spotify_ll.h \
+    spotify/spotifyaudioworker.h \
+    spotify/spotify_wrapper.h
 
 FORMS    += mainwindow.ui
