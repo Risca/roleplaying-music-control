@@ -102,10 +102,4 @@ void SpotifyAudioWorker::updateAudioBuffer()
     if (bytesRead > 0) {
         audioIODevice->write(data, bytesRead);
     }
-
-    static int count = 0;
-    if ((count++ % 100) == 0) {
-        fprintf(stderr, "SpotifyAudioWorker: Updating audio buffer (%d)\n",
-                bytesRead);
-    }
 }
