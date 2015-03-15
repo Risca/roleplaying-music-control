@@ -284,18 +284,18 @@ void Spotify::loggedInCb(sp_session *sp, sp_error err)
     }
 }
 
-void Spotify::loggedOutCb(sp_session *sp)
+void Spotify::loggedOutCb(sp_session *)
 {
     puts("Logged out!");
     eq.put(EVENT_LOGGED_OUT);
 }
 
-void Spotify::metadataUpdatedCb(sp_session *sp)
+void Spotify::metadataUpdatedCb(sp_session *)
 {
     eq.put(EVENT_METADATA_UPDATED);
 }
 
-void Spotify::notifyMainThreadCb(sp_session *sess)
+void Spotify::notifyMainThreadCb(sp_session *)
 {
     eq.put(EVENT_SPOTIFY_MAIN_TICK);
 }
@@ -330,7 +330,7 @@ int Spotify::musicDeliveryCb(sp_session *, const sp_audioformat *format,
     return writtenFrames;
 }
 
-void Spotify::endOfTrackCb(sp_session *sp)
+void Spotify::endOfTrackCb(sp_session *)
 {
     eq.put(EVENT_END_OF_TRACK);
 }
@@ -355,13 +355,13 @@ void Spotify::getAudioBufferStatsCb(sp_session *, sp_audio_buffer_stats *stats)
     }
 }
 
-void Spotify::logErrorCb(sp_session *sp, sp_error err)
+void Spotify::logErrorCb(sp_session *, sp_error err)
 {
     fprintf(stderr, "An error occured: %s\n",
             sp_error_message(err));
 }
 
-void Spotify::logMessageCb(sp_session *sp, const char *data)
+void Spotify::logMessageCb(sp_session *, const char *data)
 {
     char * str = strdup(data);
     // Remove (and truncare to) first newline
@@ -370,11 +370,11 @@ void Spotify::logMessageCb(sp_session *sp, const char *data)
     free(str);
 }
 
-void Spotify::playlistAddedCb(sp_playlistcontainer *pc, sp_playlist *playlist, int position, void *userdata)
+void Spotify::playlistAddedCb(sp_playlistcontainer *, sp_playlist *, int, void *)
 {
 }
 
-void Spotify::playlistRemovedCb(sp_playlistcontainer *pc, sp_playlist *playlist, int position, void *userdata)
+void Spotify::playlistRemovedCb(sp_playlistcontainer *, sp_playlist *, int, void *)
 {
 }
 

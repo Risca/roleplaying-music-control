@@ -13,7 +13,6 @@ TARGET = roleplaying-music-control
 TEMPLATE = app
 
 LIBS += -lspotify
-QMAKE_CFLAGS += -Wno-unused-parameter
 
 SOURCES += main.cpp\
         mainwindow.cpp \
