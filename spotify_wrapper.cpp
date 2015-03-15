@@ -9,6 +9,7 @@
 Spotify * Spotify_Wrapper::s = 0;
 sp_session_callbacks Spotify_Wrapper::spCallbacks;
 sp_playlistcontainer_callbacks Spotify_Wrapper::pcCallbacks;
+sp_playlist_callbacks Spotify_Wrapper::plCallbacks;
 
 
 void Spotify_Wrapper::init(Spotify *spotifyPointer)
@@ -38,7 +39,23 @@ void Spotify_Wrapper::init(Spotify *spotifyPointer)
 
     pcCallbacks.playlist_added = &playlist_added;
     pcCallbacks.playlist_removed = &playlist_removed;
+    pcCallbacks.playlist_moved = 0;
     pcCallbacks.container_loaded = &playlistcontainer_loaded;
+
+    plCallbacks.tracks_added = 0;
+    plCallbacks.tracks_removed = 0;
+    plCallbacks.tracks_moved = 0;
+    plCallbacks.playlist_renamed = 0;
+    plCallbacks.playlist_state_changed = 0;
+    plCallbacks.playlist_update_in_progress = 0;
+    plCallbacks.playlist_metadata_updated = 0;
+    plCallbacks.track_created_changed = 0;
+    plCallbacks.track_seen_changed = 0;
+    plCallbacks.description_changed = 0;
+    plCallbacks.image_changed = 0;
+    plCallbacks.track_message_changed = 0;
+    plCallbacks.subscribers_changed = 0;
+    plCallbacks.playlist_state_changed = &playlist_state_changed;
 }
 
 sp_session_callbacks *Spotify_Wrapper::sessionCallbacks()
@@ -55,6 +72,14 @@ sp_playlistcontainer_callbacks *Spotify_Wrapper::playlistcontainerCallbacks()
         return 0;
     }
     return &pcCallbacks;
+}
+
+sp_playlist_callbacks *Spotify_Wrapper::playlistCallbacks()
+{
+    if (s == 0) {
+        return 0;
+    }
+    return &plCallbacks;
 }
 
 /* ---------------------------  SESSION CALLBACKS  ------------------------- */
@@ -130,4 +155,9 @@ void Spotify_Wrapper::playlist_removed(sp_playlistcontainer *pc, sp_playlist *pl
 void Spotify_Wrapper::playlistcontainer_loaded(sp_playlistcontainer *pc, void *userdata)
 {
     s->playlistcontainerLoadedCb(pc, userdata);
+}
+
+void Spotify_Wrapper::playlist_state_changed(sp_playlist *pl, void *userdata)
+{
+    s->playlistStateChangedCb(pl, userdata);
 }

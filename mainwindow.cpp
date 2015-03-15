@@ -15,10 +15,12 @@ MainWindow::MainWindow(QWidget *parent) :
     spotify = new Spotify("foo", "bar");
     connect(spotify, SIGNAL(playlistsUpdated(QStringList)),
             this, SLOT(updatePlaylists(QStringList)));
-    connect(spotify, SIGNAL(songLoaded()), &retryTimer, SLOT(stop()));
+    connect(ui->comboBox, SIGNAL(currentIndexChanged(int)),
+            spotify, SLOT(changePlaylist(int)));
+    connect(spotify, SIGNAL(currentPlaylistUpdated(QStringList)),
+            this, SLOT(updateTracks(QStringList)));
+    connect(spotify, SIGNAL(loggedIn()), this, SLOT(playSong()));
     spotify->start();
-
-    connect(&retryTimer, SIGNAL(timeout()), this, SLOT(playSong()));
 }
 
 MainWindow::~MainWindow()
@@ -28,9 +30,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::updatePlaylists(const QStringList &playlistNames)
 {
+    ui->comboBox->clear();
+    ui->comboBox->addItems(playlistNames);
+}
+
+void MainWindow::updateTracks(const QStringList &trackList)
+{
     ui->listWidget->clear();
-    ui->listWidget->addItems(playlistNames);
-    retryTimer.start(1000);
+    ui->listWidget->addItems(trackList);
 }
 
 void MainWindow::playSong()

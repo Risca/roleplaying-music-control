@@ -23,11 +23,11 @@ public:
 private:
     Ui::MainWindow *ui;
     Spotify *spotify;
-    QTimer retryTimer;
     QThread audioThread;
 
 private slots:
     void updatePlaylists(const QStringList &playlistNames);
+    void updateTracks(const QStringList &trackList);
     void playSong();
 };
 

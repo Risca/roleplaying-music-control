@@ -36,21 +36,25 @@ public:
 
 public slots:
     void playURI(const QString &URI);
-    void changeCurrentlyPlayingSong();
+    void changePlaylist(int idx);
 
 signals:
     void loggedIn();
     void loggedOut();
     void songLoaded();
     void playlistsUpdated(const QStringList &);
+    void currentPlaylistUpdated(const QStringList &);
 
 private:
     void run();
     void compileNewListOfPlaylists();
+    void changeCurrentlyPlayingSong();
+    void changeCurrentPlaylist();
     void logout();
     void setNumChannels(int newChannelCount);
     void setSampleRate(int newSampleRate);
     void tryLoadTrack();
+    void tryLoadPlaylist();
 
     /* ---------------------------  SESSION CALLBACKS  ------------------------- */
     friend class Spotify_Wrapper;
@@ -109,7 +113,7 @@ private:
     void logMessageCb(sp_session *sp, const char * data);
 
 
-    /* ------------------- PLAYLIST CONTAINER ON CALLBACKS  -------------------- */
+    /* --------------------- PLAYLIST CONTAINER CALLBACKS  --------------------- */
     /**
      * Called when a new playlist is added.
      */
@@ -126,10 +130,19 @@ private:
     void playlistcontainerLoadedCb(sp_playlistcontainer * pc, void * userdata);
 
 
+    /* -------------------------- PLAYLIST CALLBACKS  -------------------------- */
+    /**
+     * Called when state changed for a playlist.
+     */
+    void playlistStateChangedCb(sp_playlist *pl, void *userdata);
+
+
     QString user;
     QString pass;
     QString currentURI;
     sp_track * currentTrack;
+    int currentPlaylistIdx;
+    sp_playlist * currentPlaylist;
     bool isPlaying;
     QMutex accessMutex;
     QBuffer audioBuffer;

@@ -14,11 +14,13 @@ public:
     static void init(Spotify * spotifyPointer);
     static sp_session_callbacks * sessionCallbacks();
     static sp_playlistcontainer_callbacks * playlistcontainerCallbacks();
+    static sp_playlist_callbacks * playlistCallbacks();
 
 private:
     Spotify_Wrapper() {}
     static sp_session_callbacks spCallbacks;
     static sp_playlistcontainer_callbacks pcCallbacks;
+    static sp_playlist_callbacks plCallbacks;
     static Spotify * s;
 
     /**
@@ -46,6 +48,11 @@ private:
     static void playlist_removed(sp_playlistcontainer * pc, sp_playlist * playlist,
                                  int position, void * userdata);
     static void playlistcontainer_loaded(sp_playlistcontainer * pc, void * userdata);
+
+    /**
+     * Playlist callbacks
+     */
+    static void playlist_state_changed(sp_playlist *pl, void *userdata);
 };
 
 #endif // SPOTIFY_WRAPPERS_H

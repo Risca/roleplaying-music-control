@@ -21,6 +21,8 @@ Spotify::Spotify(const QString &username, const QString &password) :
     user(username),
     pass(password),
     currentTrack(0),
+    currentPlaylistIdx(-1),
+    currentPlaylist(0),
     isPlaying(false),
     writePos(0),
     readPos(0),
@@ -87,6 +89,10 @@ void Spotify::run()
 
         case EVENT_URI_CHANGED:
             changeCurrentlyPlayingSong();
+            break;
+
+        case EVENT_PLAYLIST_IDX_CHANGED:
+            changeCurrentPlaylist();
             break;
 
         case EVENT_METADATA_UPDATED:
@@ -183,6 +189,60 @@ void Spotify::changeCurrentlyPlayingSong()
     sp_link_release(link);
 }
 
+void Spotify::changeCurrentPlaylist()
+{
+    sp_error err;
+    sp_playlist * playlist;
+
+    if (currentPlaylistIdx < 0) {
+        return;
+    }
+
+    sp_playlistcontainer * pc = sp_session_playlistcontainer(sp);
+    if (currentPlaylistIdx >= sp_playlistcontainer_num_playlists(pc)) {
+        return;
+    }
+
+    switch (sp_playlistcontainer_playlist_type(pc, currentPlaylistIdx)) {
+    case SP_PLAYLIST_TYPE_PLAYLIST:
+        playlist = sp_playlistcontainer_playlist(pc, currentPlaylistIdx);
+        if (!playlist) {
+            fprintf(stderr, "Spotify: failed to get playlist\n");
+            break;
+        }
+
+        err = sp_playlist_add_callbacks(playlist, Spotify_Wrapper::playlistCallbacks(), NULL);
+        if (err != SP_ERROR_OK) {
+            fprintf(stderr, "Spotify: failed to add callbacks to playlist: %s\n",
+                    sp_error_message(err));
+        }
+
+        if (currentPlaylist) {
+            sp_playlist_remove_callbacks(currentPlaylist, Spotify_Wrapper::playlistCallbacks(), NULL);
+            sp_playlist_release(currentPlaylist);
+        }
+        currentPlaylist = playlist;
+        sp_playlist_add_ref(currentPlaylist);
+
+        fprintf(stderr, "Spotify: switched to playlist %s\n",
+                sp_playlist_name(currentPlaylist));
+
+        tryLoadPlaylist();
+        break;
+
+    default:
+        fprintf(stderr, "Spotify: Tried to load a playlist that wasn't a playlist\n");
+        currentPlaylistIdx = -1;
+        break;
+    }
+}
+
+void Spotify::changePlaylist(int idx)
+{
+    currentPlaylistIdx = idx;
+    eq.put(EVENT_PLAYLIST_IDX_CHANGED);
+}
+
 void Spotify::logout()
 {
     sp_error err = sp_session_logout(sp);
@@ -268,6 +328,39 @@ void Spotify::tryLoadTrack()
 
     isPlaying = true;
     emit songLoaded();
+}
+
+void Spotify::tryLoadPlaylist()
+{
+    if ((currentPlaylistIdx < 0) || (currentPlaylist == 0)) {
+        return;
+    }
+
+    if (sp_playlist_is_loaded(currentPlaylist)) {
+        QStringList tracks;
+
+        int numTracks = sp_playlist_num_tracks(currentPlaylist);
+        for (int idx = 0; idx < numTracks; ++idx) {
+            sp_track * track = sp_playlist_track(currentPlaylist, idx);
+            if (!track) {
+                fprintf(stderr, "Spotify: failed to get track #%d\n", idx + 1);
+                continue;
+            }
+
+            QString name(sp_track_name(track));
+            if (name.isEmpty()) {
+                fprintf(stderr, "Spotify: got empty track name\n");
+                continue;
+            }
+
+            tracks.append(name);
+        }
+
+        emit currentPlaylistUpdated(tracks);
+
+        fprintf(stderr, "Spotify: loaded playlist %s\n",
+                sp_playlist_name(currentPlaylist));
+    }
 }
 
 void Spotify::loggedInCb(sp_session *sp, sp_error err)
@@ -381,4 +474,12 @@ void Spotify::playlistRemovedCb(sp_playlistcontainer *, sp_playlist *, int, void
 void Spotify::playlistcontainerLoadedCb(sp_playlistcontainer *, void *)
 {
     eq.put(EVENT_PLAYLIST_CONTAINER_LOADED);
+}
+
+void Spotify::playlistStateChangedCb(sp_playlist *pl, void *)
+{
+    if (currentPlaylist != pl) {
+        return;
+    }
+    tryLoadPlaylist();
 }
