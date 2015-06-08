@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     spotify/spotify.cpp \
     spotify/spotify_ll.c \
     spotify/spotifyaudioworker.cpp \
-    spotify/spotify_wrapper.cpp
+    spotify/spotify_wrapper.cpp \
+    logindialog.cpp
 
 HEADERS  += mainwindow.h \
     threadsafequeue.h \
@@ -28,6 +29,8 @@ HEADERS  += mainwindow.h \
     spotify/spotify_ll.h \
     spotify/spotifyaudioworker.h \
     spotify/spotify_wrapper.h \
-    spotify/spotifytrackinfo.h
+    spotify/spotifytrackinfo.h \
+    logindialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    logindialog.ui

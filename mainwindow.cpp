@@ -8,11 +8,29 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    spotify(0)
 {
     ui->setupUi(this);
+}
 
-    spotify = new Spotify("foo", "bar");
+MainWindow::~MainWindow()
+{
+    delete spotify;
+    delete ui;
+}
+
+void MainWindow::setSpotifyContext(Spotify *s)
+{
+    if (s == spotify) {
+        return;
+    }
+
+    if (spotify) {
+        spotify->deleteLater();
+    }
+    spotify = s;
+
     connect(spotify, SIGNAL(playlistsUpdated(QStringList)),
             this, SLOT(updatePlaylists(QStringList)));
     connect(ui->comboBox, SIGNAL(currentIndexChanged(int)),
@@ -21,12 +39,6 @@ MainWindow::MainWindow(QWidget *parent) :
             this, SLOT(playTrack(QModelIndex)));
     connect(spotify, SIGNAL(currentPlaylistUpdated(QList<SpotifyTrackInfo>)),
             this, SLOT(updateTracks(QList<SpotifyTrackInfo>)));
-    spotify->start();
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
 }
 
 void MainWindow::updatePlaylists(const QStringList &playlistNames)
