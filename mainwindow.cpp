@@ -6,30 +6,12 @@
 #include "spotify/spotify.h"
 
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(Spotify *spotifyContext, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    spotify(0)
+    spotify(spotifyContext)
 {
     ui->setupUi(this);
-}
-
-MainWindow::~MainWindow()
-{
-    delete spotify;
-    delete ui;
-}
-
-void MainWindow::setSpotifyContext(Spotify *s)
-{
-    if (s == spotify) {
-        return;
-    }
-
-    if (spotify) {
-        spotify->deleteLater();
-    }
-    spotify = s;
 
     connect(spotify, SIGNAL(playlistsUpdated(QStringList)),
             this, SLOT(updatePlaylists(QStringList)));
@@ -39,6 +21,12 @@ void MainWindow::setSpotifyContext(Spotify *s)
             this, SLOT(playTrack(QModelIndex)));
     connect(spotify, SIGNAL(currentPlaylistUpdated(QList<SpotifyTrackInfo>)),
             this, SLOT(updateTracks(QList<SpotifyTrackInfo>)));
+}
+
+MainWindow::~MainWindow()
+{
+    delete spotify;
+    delete ui;
 }
 
 void MainWindow::updatePlaylists(const QStringList &playlistNames)

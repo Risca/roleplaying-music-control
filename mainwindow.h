@@ -21,10 +21,9 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(Spotify *spotifyContext, QWidget *parent = 0);
     ~MainWindow();
 
-    void setSpotifyContext(Spotify * spotify);
 private:
     Ui::MainWindow *ui;
     Spotify *spotify;

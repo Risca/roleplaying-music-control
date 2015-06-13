@@ -28,8 +28,7 @@ class Spotify : public QThread
     Q_OBJECT
 
 public:
-    Spotify(const QString &username,
-            const QString &password);
+    Spotify();
     ~Spotify();
 
     int getNumChannels();
@@ -37,6 +36,7 @@ public:
     qint64 readAudioData(char * data, int maxSize);
 
 public slots:
+    void login(const QString &username, const QString &password);
     void playURI(const QString &URI);
     void changePlaylist(int idx);
 

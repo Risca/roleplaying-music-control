@@ -17,9 +17,7 @@
 #define BUFFER_SIZE 409600
 
 
-Spotify::Spotify(const QString &username, const QString &password) :
-    user(username),
-    pass(password),
+Spotify::Spotify() :
     nextTrack(0),
     currentTrack(0),
     currentPlaylistIdx(-1),
@@ -37,6 +35,7 @@ Spotify::~Spotify()
 {
     if (sp) {
         sp_session_release(sp);
+        sp = 0;
     }
     audioThread.quit();
     audioThread.wait();
@@ -50,11 +49,6 @@ void Spotify::run()
     if (!sp) {
         return;
     }
-
-    sp_session_login(sp,
-                     user.toLocal8Bit().constData(),
-                     pass.toLocal8Bit().constBegin(),
-                     0, NULL);
 
     bool running = true;
     while (running) {
@@ -74,6 +68,13 @@ void Spotify::run()
         case EVENT_TIMEOUT:
             break;
 
+        case EVENT_LOGIN_CREDENTIALS_CHANGED:
+            sp_session_login(sp,
+                             user.toLocal8Bit().constData(),
+                             pass.toLocal8Bit().constBegin(),
+                             false, NULL);
+            break;
+
         case EVENT_LOGGED_IN:
             emit loggedIn();
             break;
@@ -84,7 +85,6 @@ void Spotify::run()
 
         case EVENT_LOGGED_OUT:
             emit loggedOut();
-            running = false;
             break;
 
         case EVENT_URI_CHANGED:
@@ -286,6 +286,14 @@ qint64 Spotify::readAudioData(char *data, int maxSize)
         readPos += read;
     }
     return read;
+}
+
+void Spotify::login(const QString &username, const QString &password)
+{
+    QMutexLocker locker(&accessMutex);
+    user = username;
+    pass = password;
+    eq.put(EVENT_LOGIN_CREDENTIALS_CHANGED);
 }
 
 void Spotify::playURI(const QString &URI)

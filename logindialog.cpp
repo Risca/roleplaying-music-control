@@ -7,11 +7,16 @@
 LoginDialog::LoginDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::LoginDialog),
-    spotify(NULL)
+    spotify(new Spotify)
 {
     ui->setupUi(this);
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(acceptLogin()));
     connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+
+    connect(spotify, SIGNAL(loggedIn()), this, SLOT(accept()));
+    connect(spotify, SIGNAL(loggedOut()), this, SLOT(spotifyLoggedOut()));
+    connect(this, SIGNAL(tryLogin(QString,QString)), spotify, SLOT(login(QString,QString)));
+    spotify->start();
 }
 
 LoginDialog::~LoginDialog()
@@ -29,17 +34,12 @@ Spotify *LoginDialog::takeOverSpotifyContext()
 
 void LoginDialog::acceptLogin()
 {
+    emit tryLogin(ui->usernameComboBox->currentText(),
+                  ui->passwordLineEdit->text());
     this->setEnabled(false);
-    spotify = new Spotify(ui->usernameComboBox->currentText(),
-                          ui->passwordLineEdit->text());
-    connect(spotify, SIGNAL(loggedIn()), this, SLOT(accept()));
-    connect(spotify, SIGNAL(loggedOut()), this, SLOT(spotifyLoggedOut()));
-    spotify->start();
 }
 
 void LoginDialog::spotifyLoggedOut()
 {
-    delete spotify;
-    spotify = NULL;
     this->setEnabled(true);
 }

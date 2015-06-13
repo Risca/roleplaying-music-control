@@ -24,10 +24,9 @@ int main(int argc, char *argv[])
 
     Spotify *spotify = login();
     if (0 == spotify) {
-        return -1;
+        return 0;
     }
-    MainWindow w;
-    w.setSpotifyContext(spotify);
+    MainWindow w(spotify);
     w.show();
 
     return a.exec();

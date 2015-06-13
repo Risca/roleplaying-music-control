@@ -19,6 +19,9 @@ public:
 
     Spotify *takeOverSpotifyContext();
 
+signals:
+    void tryLogin(const QString &username, const QString &password);
+
 private:
     Ui::LoginDialog *ui;
     Spotify *spotify;
