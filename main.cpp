@@ -22,6 +22,10 @@ int main(int argc, char *argv[])
     qRegisterMetaType<SpotifyTrackInfo>();
     qRegisterMetaType<QList<SpotifyTrackInfo> >();
 
+    QCoreApplication::setOrganizationName("Risca hacks");
+    QCoreApplication::setOrganizationDomain("risca.servebeer.com");
+    QCoreApplication::setApplicationName("Roleplay Music Control");
+
     Spotify *spotify = login();
     if (0 == spotify) {
         return 0;

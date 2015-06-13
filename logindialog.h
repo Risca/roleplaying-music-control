@@ -2,6 +2,7 @@
 #define LOGINDIALOG_H
 
 #include <QDialog>
+#include <QSettings>
 
 class Spotify;
 
@@ -25,6 +26,8 @@ signals:
 private:
     Ui::LoginDialog *ui;
     Spotify *spotify;
+
+    QSettings settings;
 
 private slots:
     void acceptLogin();
