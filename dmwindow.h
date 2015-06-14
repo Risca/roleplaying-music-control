@@ -13,19 +13,19 @@ class QStringList;
 class Spotify;
 
 namespace Ui {
-class MainWindow;
+class DMWindow;
 }
 
-class MainWindow : public QMainWindow
+class DMWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(Spotify *spotifyContext, QWidget *parent = 0);
-    ~MainWindow();
+    explicit DMWindow(Spotify *spotifyContext, QWidget *parent = 0);
+    ~DMWindow();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::DMWindow *ui;
     Spotify *spotify;
     QThread audioThread;
 

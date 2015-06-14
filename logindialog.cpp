@@ -48,6 +48,11 @@ Spotify *LoginDialog::takeOverSpotifyContext()
     return s;
 }
 
+bool LoginDialog::isDungeonMaster() const
+{
+    return ui->dmCheckBox->checkState() != Qt::Unchecked;
+}
+
 void LoginDialog::acceptLogin()
 {
     QString username = ui->usernameComboBox->currentText();

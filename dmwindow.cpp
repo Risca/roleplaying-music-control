@@ -1,14 +1,14 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "dmwindow.h"
+#include "ui_dmwindow.h"
 
 #include <QTimer>
 
 #include "spotify/spotify.h"
 
 
-MainWindow::MainWindow(Spotify *spotifyContext, QWidget *parent) :
+DMWindow::DMWindow(Spotify *spotifyContext, QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow),
+    ui(new Ui::DMWindow),
     spotify(spotifyContext)
 {
     ui->setupUi(this);
@@ -23,19 +23,19 @@ MainWindow::MainWindow(Spotify *spotifyContext, QWidget *parent) :
             this, SLOT(updateTracks(QList<SpotifyTrackInfo>)));
 }
 
-MainWindow::~MainWindow()
+DMWindow::~DMWindow()
 {
     delete spotify;
     delete ui;
 }
 
-void MainWindow::updatePlaylists(const QStringList &playlistNames)
+void DMWindow::updatePlaylists(const QStringList &playlistNames)
 {
     ui->comboBox->clear();
     ui->comboBox->addItems(playlistNames);
 }
 
-void MainWindow::updateTracks(const QList<SpotifyTrackInfo> &trackList)
+void DMWindow::updateTracks(const QList<SpotifyTrackInfo> &trackList)
 {
     ui->listWidget->clear();
     QList<SpotifyTrackInfo>::const_iterator it = trackList.constBegin();
@@ -47,7 +47,7 @@ void MainWindow::updateTracks(const QList<SpotifyTrackInfo> &trackList)
     }
 }
 
-void MainWindow::playTrack(const QModelIndex &index)
+void DMWindow::playTrack(const QModelIndex &index)
 {
     QListWidgetItem *item = ui->listWidget->item(index.row());
     if (!item) {

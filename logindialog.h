@@ -19,6 +19,7 @@ public:
     ~LoginDialog();
 
     Spotify *takeOverSpotifyContext();
+    bool isDungeonMaster() const;
 
 signals:
     void tryLogin(const QString &username, const QString &password);

@@ -15,22 +15,27 @@ TEMPLATE = app
 LIBS += -lspotify
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
     spotify/appkey.c \
     spotify/spotify.cpp \
     spotify/spotify_ll.c \
     spotify/spotifyaudioworker.cpp \
     spotify/spotify_wrapper.cpp \
-    logindialog.cpp
+    logindialog.cpp \
+    dmwindow.cpp \
+    playerwindow.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS  += \
     threadsafequeue.h \
     spotify/spotify.h \
     spotify/spotify_ll.h \
     spotify/spotifyaudioworker.h \
     spotify/spotify_wrapper.h \
     spotify/spotifytrackinfo.h \
-    logindialog.h
+    logindialog.h \
+    dmwindow.h \
+    playerwindow.h
 
-FORMS    += mainwindow.ui \
-    logindialog.ui
+FORMS    += \
+    logindialog.ui \
+    dmwindow.ui \
+    playerwindow.ui
