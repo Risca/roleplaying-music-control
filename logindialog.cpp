@@ -20,6 +20,14 @@ LoginDialog::LoginDialog(QWidget *parent) :
     connect(ui->usernameComboBox, SIGNAL(currentIndexChanged(int)),
             ui->passwordLineEdit, SLOT(clear()));
 
+    bool dm = settings.value("login/dungeon_master").toBool();
+    if (dm) {
+        ui->dmCheckBox->setCheckState(Qt::Checked);
+    }
+    else {
+        ui->dmCheckBox->setCheckState(Qt::Unchecked);
+    }
+
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(acceptLogin()));
     connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
@@ -37,6 +45,7 @@ LoginDialog::~LoginDialog()
     }
     settings.setValue("spotify/usernames", usernames);
     settings.setValue("spotify/last_user", ui->usernameComboBox->currentText());
+    settings.setValue("login/dungeon_master", isDungeonMaster());
     delete spotify;
     delete ui;
 }
