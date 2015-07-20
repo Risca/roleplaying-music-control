@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
         main.reset(new DMWindow(spotify, room));
     }
     else {
-        main.reset(new PlayerWindow(spotify));
+        main.reset(new PlayerWindow(spotify, room));
     }
     main->show();
 

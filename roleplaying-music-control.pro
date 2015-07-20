@@ -33,7 +33,8 @@ HEADERS  += \
     spotify/spotifytrackinfo.h \
     logindialog.h \
     dmwindow.h \
-    playerwindow.h
+    playerwindow.h \
+    zmqsubscriber.h
 
 FORMS    += \
     logindialog.ui \

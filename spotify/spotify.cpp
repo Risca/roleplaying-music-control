@@ -299,6 +299,40 @@ qint64 Spotify::readAudioData(char *data, int maxSize)
     return read;
 }
 
+QString Spotify::songNameFromUri(const QString &uriString)
+{
+    const char * uri = uriString.toLocal8Bit().constData();
+    sp_link * link = sp_link_create_from_string(uri);
+    if (!link) {
+        fprintf(stderr, "Spotify: failed to parse URI (%s)\n", uri);
+        return QString();
+    }
+
+    sp_track * track;
+    QString song;
+
+    switch (sp_link_type(link)) {
+    case SP_LINKTYPE_LOCALTRACK:
+    case SP_LINKTYPE_TRACK:
+        track = sp_link_as_track(link);
+        if (!track) {
+            fprintf(stderr, "Link is not a track\n");
+            break;
+        }
+
+        song = QString(sp_track_name(track));
+        break;
+
+    default:
+        qDebug() << "URI is not a track:" << uriString;
+        break;
+    }
+
+    sp_link_release(link);
+
+    return song;
+}
+
 void Spotify::login(const QString &username)
 {
     QMutexLocker locker(&accessMutex);
@@ -378,7 +412,7 @@ void Spotify::tryLoadTrack()
     }
     currentTrack = nextTrack;
 
-    emit songLoaded();
+    emit songLoaded(currentURI);
 }
 
 void Spotify::tryLoadPlaylist()
@@ -402,7 +436,7 @@ void Spotify::tryLoadPlaylist()
             if (name.isEmpty()) {
                 fprintf(stderr, "Spotify: got empty track name\n");
                 continue;
-            }            
+            }
 
             SpotifyTrackInfo info;
             info.name = name;

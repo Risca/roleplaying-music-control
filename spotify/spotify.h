@@ -36,6 +36,8 @@ public:
     int getSampleRate();
     qint64 readAudioData(char * data, int maxSize);
 
+    static QString songNameFromUri(const QString &uriString);
+
 public slots:
     void login(const QString &username);
     void login(const QString &username, const QString &password);
@@ -45,7 +47,7 @@ public slots:
 signals:
     void loggedIn();
     void loggedOut();
-    void songLoaded();
+    void songLoaded(const QString &uri);
     void playlistsUpdated(const QStringList &);
     void currentPlaylistUpdated(const QList<SpotifyTrackInfo> &);
 
