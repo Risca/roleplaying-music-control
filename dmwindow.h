@@ -7,6 +7,8 @@
 #include <QTimer>
 #include <QThread>
 
+#include <zmq.hpp>
+
 #include "spotify/spotifytrackinfo.h"
 
 class QModelIndex;
@@ -22,7 +24,7 @@ class DMWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit DMWindow(Spotify *spotifyContext, QWidget *parent = 0);
+    explicit DMWindow(Spotify *spotifyContext, const QString &room, QWidget *parent = 0);
     ~DMWindow();
 
 private:
@@ -30,6 +32,12 @@ private:
     Spotify *spotify;
     QThread audioThread;
     QSettings settings;
+    QString topic;
+    zmq::context_t zmqContext;
+    zmq::socket_t zmqPublisher;
+
+signals:
+    void trackClicked(const QString &URI);
 
 private slots:
     void updatePlaylists(const QStringList &playlistNames);

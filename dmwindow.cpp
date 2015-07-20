@@ -6,12 +6,17 @@
 #include "spotify/spotify.h"
 
 
-DMWindow::DMWindow(Spotify *spotifyContext, QWidget *parent) :
+DMWindow::DMWindow(Spotify *spotifyContext, const QString &room, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::DMWindow),
-    spotify(spotifyContext)
+    spotify(spotifyContext),
+    topic(room),
+    zmqContext(),
+    zmqPublisher(zmqContext, ZMQ_PUB)
 {
     ui->setupUi(this);
+
+    zmqPublisher.bind("tcp://*:5556");
 
     connect(spotify, SIGNAL(playlistsUpdated(QStringList)),
             this, SLOT(updatePlaylists(QStringList)));
@@ -21,6 +26,7 @@ DMWindow::DMWindow(Spotify *spotifyContext, QWidget *parent) :
             this, SLOT(playTrack(QModelIndex)));
     connect(spotify, SIGNAL(currentPlaylistUpdated(QList<SpotifyTrackInfo>)),
             this, SLOT(updateTracks(QList<SpotifyTrackInfo>)));
+    connect(this, SIGNAL(trackClicked(QString)), spotify, SLOT(playURI(QString)));
 }
 
 DMWindow::~DMWindow()
@@ -54,10 +60,9 @@ void DMWindow::playTrack(const QModelIndex &index)
         return;
     }
 
-    QVariant uri = item->data(Qt::UserRole);
-    if (!uri.canConvert<QString>()) {
-        return;
-    }
+    QString uri = item->data(Qt::UserRole).toString();
+    emit trackClicked(uri);
 
-    spotify->playURI(uri.toString());
+    QByteArray zmqMsg = topic.toLocal8Bit() + " " + uri.toLocal8Bit();
+    zmqPublisher.send(zmqMsg.begin(), zmqMsg.end());
 }

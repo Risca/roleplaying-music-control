@@ -20,6 +20,7 @@ public:
 
     Spotify *takeOverSpotifyContext();
     bool isDungeonMaster() const;
+    QString room() const;
 
 signals:
     void tryLogin(const QString &username);

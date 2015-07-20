@@ -31,6 +31,9 @@ LoginDialog::LoginDialog(QWidget *parent) :
         ui->dmCheckBox->setCheckState(Qt::Unchecked);
     }
 
+    QString room = settings.value("login/room").toString();
+    ui->roomLineEdit->setText(room);
+
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(acceptLogin()));
     connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
@@ -50,6 +53,7 @@ LoginDialog::~LoginDialog()
     settings.setValue("spotify/usernames", usernames);
     settings.setValue("spotify/last_user", ui->usernameComboBox->currentText());
     settings.setValue("login/dungeon_master", isDungeonMaster());
+    settings.setValue("login/room", ui->roomLineEdit->text());
     delete spotify;
     delete ui;
 }
@@ -64,6 +68,11 @@ Spotify *LoginDialog::takeOverSpotifyContext()
 bool LoginDialog::isDungeonMaster() const
 {
     return ui->dmCheckBox->checkState() != Qt::Unchecked;
+}
+
+QString LoginDialog::room() const
+{
+    return ui->roomLineEdit->text();
 }
 
 void LoginDialog::acceptLogin()

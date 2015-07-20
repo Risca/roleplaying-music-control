@@ -12,7 +12,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = roleplaying-music-control
 TEMPLATE = app
 
-LIBS += -lspotify
+LIBS += -lspotify -lzmq
 
 SOURCES += main.cpp\
     spotify/appkey.c \

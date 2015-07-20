@@ -6,7 +6,7 @@
 #include "spotify/spotifytrackinfo.h"
 
 
-Spotify *login(bool &dm)
+Spotify *login(bool &dm, QString &room)
 {
     LoginDialog login;
     int rv = login.exec();
@@ -15,6 +15,7 @@ Spotify *login(bool &dm)
     }
 
     dm = login.isDungeonMaster();
+    room = login.room();
 
     return login.takeOverSpotifyContext();
 }
@@ -31,14 +32,15 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("Roleplay Music Control");
 
     bool dm = false;
-    Spotify *spotify = login(dm);
+    QString room;
+    Spotify *spotify = login(dm, room);
     if (0 == spotify) {
         return 0;
     }
 
     QScopedPointer<QWidget> main;
     if (dm) {
-        main.reset(new DMWindow(spotify));
+        main.reset(new DMWindow(spotify, room));
     }
     else {
         main.reset(new PlayerWindow(spotify));
