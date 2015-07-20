@@ -3,6 +3,7 @@
 
 #include <QList>
 #include <QMainWindow>
+#include <QSettings>
 #include <QTimer>
 #include <QThread>
 
@@ -28,6 +29,7 @@ private:
     Ui::DMWindow *ui;
     Spotify *spotify;
     QThread audioThread;
+    QSettings settings;
 
 private slots:
     void updatePlaylists(const QStringList &playlistNames);

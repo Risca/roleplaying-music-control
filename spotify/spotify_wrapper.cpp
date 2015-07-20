@@ -32,7 +32,7 @@ void Spotify_Wrapper::init(Spotify *spotifyPointer)
     spCallbacks.get_audio_buffer_stats = &get_audio_buffer_stats;
     spCallbacks.offline_status_updated = &dummy;
     spCallbacks.offline_error = &log_error;
-    spCallbacks.credentials_blob_updated = &log_message;
+    spCallbacks.credentials_blob_updated = &credentials_blob_updated;
     spCallbacks.connectionstate_updated = &dummy;
     spCallbacks.scrobble_error = &log_error;
     spCallbacks.private_session_mode_changed = 0;
@@ -127,6 +127,11 @@ void Spotify_Wrapper::stop_playback(sp_session *sp)
 void Spotify_Wrapper::get_audio_buffer_stats(sp_session *sp, sp_audio_buffer_stats *stats)
 {
     s->getAudioBufferStatsCb(sp, stats);
+}
+
+void Spotify_Wrapper::credentials_blob_updated(sp_session *sp, const char *data)
+{
+    s->credentialsBlobUpdated(sp, data);
 }
 
 void Spotify_Wrapper::log_error(sp_session *sp, sp_error err)

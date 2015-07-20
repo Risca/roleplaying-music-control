@@ -22,6 +22,7 @@ public:
     bool isDungeonMaster() const;
 
 signals:
+    void tryLogin(const QString &username);
     void tryLogin(const QString &username, const QString &password);
 
 private:
@@ -29,10 +30,13 @@ private:
     Spotify *spotify;
 
     QSettings settings;
+    bool useCredentialBlob;
 
 private slots:
     void acceptLogin();
     void spotifyLoggedOut();
+    void userChanged(const QString &user);
+    void resetBlobUse();
 };
 
 #endif // LOGINDIALOG_H

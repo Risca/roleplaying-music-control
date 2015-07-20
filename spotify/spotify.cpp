@@ -69,10 +69,21 @@ void Spotify::run()
             break;
 
         case EVENT_LOGIN_CREDENTIALS_CHANGED:
-            sp_session_login(sp,
-                             user.toLocal8Bit().constData(),
-                             pass.toLocal8Bit().constBegin(),
-                             false, NULL);
+            if (pass.isEmpty()) {
+                // Try using credential blob
+                sp_session_login(sp,
+                                 user.toLocal8Bit().constData(),
+                                 NULL,
+                                 false,
+                                 blob.constData());
+            }
+            else {
+                sp_session_login(sp,
+                                 user.toLocal8Bit().constData(),
+                                 pass.toLocal8Bit().constData(),
+                                 false,
+                                 NULL);
+            }
             break;
 
         case EVENT_LOGGED_IN:
@@ -286,6 +297,18 @@ qint64 Spotify::readAudioData(char *data, int maxSize)
         readPos += read;
     }
     return read;
+}
+
+void Spotify::login(const QString &username)
+{
+    QMutexLocker locker(&accessMutex);
+    const QMap<QString, QVariant> credentials = settings.value("spotify/credential_blobs").toMap();
+    QMap<QString, QVariant>::const_iterator it = credentials.find(username);
+    if (it != credentials.constEnd()) {
+        user = username;
+        blob = it.value().toByteArray();
+        eq.put(EVENT_LOGIN_CREDENTIALS_CHANGED);
+    }
 }
 
 void Spotify::login(const QString &username, const QString &password)
@@ -508,6 +531,17 @@ void Spotify::getAudioBufferStatsCb(sp_session *, sp_audio_buffer_stats *stats)
     if (numChannels) {
         stats->samples = (writePos - readPos) / (sizeof(int16_t) * numChannels);
     }
+}
+
+void Spotify::credentialsBlobUpdated(sp_session *, const char *data)
+{
+    QMutexLocker locker(&accessMutex);
+    // Replace pass with blob
+    blob = QByteArray(data);
+    QMap<QString, QVariant> credentialBlobs = settings.value("spotify/credential_blobs").toMap();
+    credentialBlobs[user] = blob;
+    settings.setValue("spotify/credential_blobs", credentialBlobs);
+    pass = QString();
 }
 
 void Spotify::logErrorCb(sp_session *, sp_error err)

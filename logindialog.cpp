@@ -8,7 +8,8 @@
 LoginDialog::LoginDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::LoginDialog),
-    spotify(new Spotify)
+    spotify(new Spotify),
+    useCredentialBlob(false)
 {
     ui->setupUi(this);
     QStringList usernames = settings.value("spotify/usernames").toStringList();
@@ -17,8 +18,10 @@ LoginDialog::LoginDialog(QWidget *parent) :
     }
     QString user = settings.value("spotify/last_user").toString();
     ui->usernameComboBox->setCurrentText(user);
-    connect(ui->usernameComboBox, SIGNAL(currentIndexChanged(int)),
-            ui->passwordLineEdit, SLOT(clear()));
+    userChanged(user);
+    connect(ui->usernameComboBox, SIGNAL(currentIndexChanged(QString)),
+            this, SLOT(userChanged(QString)));
+    connect(ui->passwordLineEdit, SIGNAL(textEdited(QString)), this, SLOT(resetBlobUse()));
 
     bool dm = settings.value("login/dungeon_master").toBool();
     if (dm) {
@@ -33,6 +36,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
 
     connect(spotify, SIGNAL(loggedIn()), this, SLOT(accept()));
     connect(spotify, SIGNAL(loggedOut()), this, SLOT(spotifyLoggedOut()));
+    connect(this, SIGNAL(tryLogin(QString)), spotify, SLOT(login(QString)));
     connect(this, SIGNAL(tryLogin(QString,QString)), spotify, SLOT(login(QString,QString)));
     spotify->start();
 }
@@ -69,11 +73,30 @@ void LoginDialog::acceptLogin()
     if (idx < 0) {
         ui->usernameComboBox->addItem(username);
     }
-    emit tryLogin(username, ui->passwordLineEdit->text());
+    if (useCredentialBlob) {
+        emit tryLogin(username);
+    }
+    else {
+        emit tryLogin(username, ui->passwordLineEdit->text());
+    }
     this->setEnabled(false);
 }
 
 void LoginDialog::spotifyLoggedOut()
 {
     this->setEnabled(true);
+}
+
+void LoginDialog::userChanged(const QString &user)
+{
+    const QMap<QString, QVariant> credentialBlobs = settings.value("spotify/credential_blobs").toMap();
+    if (credentialBlobs.contains(user)) {
+        ui->passwordLineEdit->setText("1234567890");
+        useCredentialBlob = true;
+    }
+}
+
+void LoginDialog::resetBlobUse()
+{
+    useCredentialBlob = false;
 }

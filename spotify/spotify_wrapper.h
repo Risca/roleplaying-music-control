@@ -36,6 +36,7 @@ private:
     static void start_playback(sp_session *sp);
     static void stop_playback(sp_session *sp);
     static void get_audio_buffer_stats(sp_session *sp, sp_audio_buffer_stats *stats);
+    static void credentials_blob_updated(sp_session *sp, const char * data);
     static void log_error(sp_session *sp, sp_error err);
     static void log_message(sp_session *sp, const char * data);
     static void dummy(sp_session*) {}

@@ -5,6 +5,7 @@
 #include <QBuffer>
 #include <QList>
 #include <QMutex>
+#include <QSettings>
 #include <QString>
 #include <QThread>
 
@@ -36,6 +37,7 @@ public:
     qint64 readAudioData(char * data, int maxSize);
 
 public slots:
+    void login(const QString &username);
     void login(const QString &username, const QString &password);
     void playURI(const QString &URI);
     void changePlaylist(int idx);
@@ -106,6 +108,12 @@ private:
     void getAudioBufferStatsCb(sp_session *sp, sp_audio_buffer_stats *stats);
 
     /**
+     * Called when storable credentials have been updated, usually called when
+     * we have connected to the AP.
+     */
+    void credentialsBlobUpdated(sp_session *sp, const char * data);
+
+    /**
      * This callback is called whenever an error occurs
      */
     void logErrorCb(sp_session *sp, sp_error err);
@@ -142,6 +150,7 @@ private:
 
     QString user;
     QString pass;
+    QByteArray blob;
     QString currentURI;
     sp_track * nextTrack;
     sp_track * currentTrack;
@@ -155,6 +164,7 @@ private:
     sp_session *sp;
     ThreadSafeQueue<SpotifyEvent_t> eq;
     QThread audioThread;
+    QSettings settings;
 };
 
 
