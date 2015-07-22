@@ -1,9 +1,9 @@
 #ifndef ZMQSUBSCRIBER_H
 #define ZMQSUBSCRIBER_H
 
+#include "3pp/cppzmq/zmq.hpp"
 #include <QString>
 #include <QThread>
-#include <zmq.hpp>
 
 class ZmqSubscriber : public QThread
 {

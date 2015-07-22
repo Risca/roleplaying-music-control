@@ -7,8 +7,7 @@
 #include <QTimer>
 #include <QThread>
 
-#include <zmq.hpp>
-
+#include "3pp/cppzmq/zmq.hpp"
 #include "spotify/spotifytrackinfo.h"
 
 class QModelIndex;

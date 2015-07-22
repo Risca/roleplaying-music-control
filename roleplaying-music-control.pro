@@ -34,7 +34,8 @@ HEADERS  += \
     logindialog.h \
     dmwindow.h \
     playerwindow.h \
-    zmqsubscriber.h
+    zmqsubscriber.h \
+    3pp/cppzmq/zmq.hpp
 
 FORMS    += \
     logindialog.ui \
