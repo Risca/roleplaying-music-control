@@ -16,7 +16,7 @@ DMWindow::DMWindow(Spotify *spotifyContext, const QString &room, QWidget *parent
 {
     ui->setupUi(this);
 
-    zmqPublisher.bind("tcp://*:5556");
+    zmqPublisher.connect("tcp://risca.servebeer.com:5557");
 
     connect(spotify, SIGNAL(playlistsUpdated(QStringList)),
             this, SLOT(updatePlaylists(QStringList)));

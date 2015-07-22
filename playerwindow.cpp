@@ -7,7 +7,7 @@ PlayerWindow::PlayerWindow(Spotify *spotifyContext, const QString &room, QWidget
     QDialog(parent),
     ui(new Ui::PlayerWindow),
     spotify(spotifyContext),
-    zmqSubscriber("tcp://localhost:5556", room)
+    zmqSubscriber("tcp://risca.servebeer.com:5558", room)
 {
     ui->setupUi(this);
 
