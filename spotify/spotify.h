@@ -1,7 +1,6 @@
 #ifndef SPOTIFY_H
 #define SPOTIFY_H
 
-#include <QAudioOutput>
 #include <QBuffer>
 #include <QList>
 #include <QMutex>
@@ -34,7 +33,7 @@ public:
 
     int getNumChannels();
     int getSampleRate();
-    qint64 readAudioData(char * data, int maxSize);
+    qint64 readAudioData(char * data, qint64 maxSize);
 
     static QString songNameFromUri(const QString &uriString);
 
@@ -160,7 +159,7 @@ private:
     sp_playlist * currentPlaylist;
     QMutex accessMutex;
     QBuffer audioBuffer;
-    int writePos, readPos;
+    qint64 writePos, readPos;
     int numChannels;
     int sampleRate;
     sp_session *sp;

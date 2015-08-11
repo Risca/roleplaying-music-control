@@ -1,7 +1,6 @@
 #include "spotify.h"
 #include "spotify_ll.h"
 
-#include <QAudioOutput>
 #include <QBuffer>
 #include <QDebug>
 #include <QIODevice>
@@ -285,7 +284,7 @@ int Spotify::getSampleRate()
     return sampleRate;
 }
 
-qint64 Spotify::readAudioData(char *data, int maxSize)
+qint64 Spotify::readAudioData(char *data, qint64 maxSize)
 {
     QMutexLocker locker(&accessMutex);
     int toRead = qMin(writePos - readPos, maxSize);

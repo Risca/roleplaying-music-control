@@ -1,9 +1,9 @@
 #ifndef SPOTIFYAUDIOWORKER_H
 #define SPOTIFYAUDIOWORKER_H
 
-#include <QAudio>
 #include <QObject>
 #include <QTimer>
+#include <vlc/vlc.h>
 
 class QAudioOutput;
 class QIODevice;
@@ -22,12 +22,27 @@ public slots:
 
 private:
     Spotify * spotify;
-    QIODevice * audioIODevice;
-    QAudioOutput * ao;
+    libvlc_instance_t * vlc;
+    libvlc_media_player_t *mediaPlayer;
+    int64_t ts;
 
-private slots:
-    void handleStateChanged(QAudio::State newState);
-    void updateAudioBuffer();
+    static int ImemGetCb (void *data,
+                          const char *cookie,
+                          int64_t *dts,
+                          int64_t *pts,
+                          unsigned *flags,
+                          size_t * bufferSize,
+                          void ** buffer);
+    int ImemGet (int64_t *dts,
+                 int64_t *pts,
+                 unsigned *flags,
+                 size_t * bufferSize,
+                 void ** buffer);
+    static int ImemReleaseCb (void *data,
+                              const char *cookie,
+                              size_t bufferSize,
+                              void * buffer);
+    int ImemRelease (size_t bufferSize, void *buffer);
 };
 
 #endif // SPOTIFYAUDIOWORKER_H

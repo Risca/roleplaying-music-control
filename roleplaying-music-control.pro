@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT      += core gui multimedia
+QT      += core gui
 CONFIG  += console
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -12,7 +12,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = roleplaying-music-control
 TEMPLATE = app
 
-LIBS += -lspotify -lzmq
+LIBS += -lspotify -lzmq -lvlc
 
 SOURCES += main.cpp\
     spotify/appkey.c \
