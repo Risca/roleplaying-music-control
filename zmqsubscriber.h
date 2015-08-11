@@ -21,11 +21,11 @@ private:
     const QString topic;
 
     void run() Q_DECL_OVERRIDE {
-        zmq::context_t context (1);
+        zmq::context_t context (1, 63);
 
         //  Socket to talk to server
         zmq::socket_t subscriber (context, ZMQ_SUB);
-        subscriber.connect(address.toLocal8Bit().toStdString());
+        subscriber.connect(address.toLocal8Bit());
         subscriber.setsockopt(ZMQ_SUBSCRIBE,
                               topic.toLocal8Bit(),
                               topic.toLocal8Bit().size());

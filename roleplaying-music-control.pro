@@ -41,3 +41,13 @@ FORMS    += \
     logindialog.ui \
     dmwindow.ui \
     playerwindow.ui
+
+win32: LIBS += -L$$PWD/../../../../zeromq-4.1.2/.libs/ -llibzmq
+
+INCLUDEPATH += $$PWD/../../../../zeromq-4.1.2/include
+DEPENDPATH += $$PWD/../../../../zeromq-4.1.2/include
+
+win32: LIBS += -L$$PWD/../../../../libspotify-12.1.51-win32-release/lib/ -llibspotify
+
+INCLUDEPATH += $$PWD/../../../../libspotify-12.1.51-win32-release/include
+DEPENDPATH += $$PWD/../../../../libspotify-12.1.51-win32-release/include

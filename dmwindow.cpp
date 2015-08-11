@@ -11,7 +11,7 @@ DMWindow::DMWindow(Spotify *spotifyContext, const QString &room, QWidget *parent
     ui(new Ui::DMWindow),
     spotify(spotifyContext),
     topic(room),
-    zmqContext(),
+    zmqContext(1, 63),
     zmqPublisher(zmqContext, ZMQ_PUB)
 {
     ui->setupUi(this);

@@ -26,34 +26,34 @@ private:
     /**
      * Session callbacks
      */
-    static void logged_in(sp_session *sp, sp_error err);
-    static void logged_out(sp_session *sp);
-    static void metadata_updated(sp_session *sp);
-    static void notify_main_thread(sp_session *sp);
-    static int music_delivery(sp_session *sp, const sp_audioformat *format,
-                              const void *frames, int num_frames);
-    static void end_of_track(sp_session *sp);
-    static void start_playback(sp_session *sp);
-    static void stop_playback(sp_session *sp);
-    static void get_audio_buffer_stats(sp_session *sp, sp_audio_buffer_stats *stats);
-    static void credentials_blob_updated(sp_session *sp, const char * data);
-    static void log_error(sp_session *sp, sp_error err);
-    static void log_message(sp_session *sp, const char * data);
-    static void dummy(sp_session*) {}
+    static void SP_CALLCONV logged_in(sp_session *sp, sp_error err);
+    static void SP_CALLCONV logged_out(sp_session *sp);
+    static void SP_CALLCONV metadata_updated(sp_session *sp);
+    static void SP_CALLCONV notify_main_thread(sp_session *sp);
+    static int SP_CALLCONV music_delivery(sp_session *sp, const sp_audioformat *format,
+                                          const void *frames, int num_frames);
+    static void SP_CALLCONV end_of_track(sp_session *sp);
+    static void SP_CALLCONV start_playback(sp_session *sp);
+    static void SP_CALLCONV stop_playback(sp_session *sp);
+    static void SP_CALLCONV get_audio_buffer_stats(sp_session *sp, sp_audio_buffer_stats *stats);
+    static void SP_CALLCONV credentials_blob_updated(sp_session *sp, const char * data);
+    static void SP_CALLCONV log_error(sp_session *sp, sp_error err);
+    static void SP_CALLCONV log_message(sp_session *sp, const char * data);
+    static void SP_CALLCONV dummy(sp_session*) {}
 
     /**
      * Playlist container callbacks
      */
-    static void playlist_added(sp_playlistcontainer * pc, sp_playlist * playlist,
-                               int position, void * userdata);
-    static void playlist_removed(sp_playlistcontainer * pc, sp_playlist * playlist,
-                                 int position, void * userdata);
-    static void playlistcontainer_loaded(sp_playlistcontainer * pc, void * userdata);
+    static void SP_CALLCONV playlist_added(sp_playlistcontainer * pc, sp_playlist * playlist,
+                                           int position, void * userdata);
+    static void SP_CALLCONV playlist_removed(sp_playlistcontainer * pc, sp_playlist * playlist,
+                                           int position, void * userdata);
+    static void SP_CALLCONV playlistcontainer_loaded(sp_playlistcontainer * pc, void * userdata);
 
     /**
      * Playlist callbacks
      */
-    static void playlist_state_changed(sp_playlist *pl, void *userdata);
+    static void SP_CALLCONV playlist_state_changed(sp_playlist *pl, void *userdata);
 };
 
 #endif // SPOTIFY_WRAPPERS_H
