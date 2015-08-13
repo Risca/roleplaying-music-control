@@ -6,22 +6,17 @@
 #include <QPushButton>
 #include <QStringList>
 #include <QVBoxLayout>
-#include <SDL2/SDL.h>
+#include "sdlengine.h"
 
 SDLAudioDriverChangeDialog::SDLAudioDriverChangeDialog(QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f)
 {
-    originalDriver = QString(SDL_GetCurrentAudioDriver());
+    originalDriver = SDLEngine::getCurrentAudioDriver();
 
     setWindowTitle(tr("Select audio driver"));
 
-    QStringList drivers;
-    for (int i = 0; i < SDL_GetNumAudioDrivers(); ++i) {
-        drivers += QString(SDL_GetAudioDriver(i));
-    }
-
     driverList = new QComboBox(this);
-    driverList->addItems(drivers);
+    driverList->addItems(SDLEngine::getAudioDrivers());
     deviceList = new QComboBox(this);
     connect(driverList, SIGNAL(currentIndexChanged(QString)),
             this, SLOT(changeAudioDriver(QString)));
@@ -58,23 +53,11 @@ void SDLAudioDriverChangeDialog::reject()
 
 void SDLAudioDriverChangeDialog::changeAudioDriver(const QString &driverName)
 {
-    QString envString = "SDL_AUDIODRIVER=" + driverName;
-    SDL_QuitSubSystem(SDL_INIT_AUDIO);
-    putenv(envString.toStdString().c_str());
-    int rc = SDL_InitSubSystem(SDL_INIT_AUDIO);
-    if (rc != 0) {
-        fprintf(stderr, "Failed to initialize \"%s\": %s\n",
-                driverName.toStdString().c_str(),
-                SDL_GetError());
+    if (!SDLEngine::setAudioDriver(driverName)) {
         return;
     }
 
-    QStringList devices;
-    const int count = SDL_GetNumAudioDevices(0);
-    for (int i = 0; i < count; ++i) {
-        devices += QString(SDL_GetAudioDeviceName(i, 0));
-    }
     deviceList->clear();
-    deviceList->addItems(devices);
+    deviceList->addItems(SDLEngine::getAudioDevices());
     adjustSize();
 }
