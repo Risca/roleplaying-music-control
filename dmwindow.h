@@ -42,6 +42,8 @@ private slots:
     void updatePlaylists(const QStringList &playlistNames);
     void updateTracks(const QList<SpotifyTrackInfo> &trackList);
     void playTrack(const QModelIndex &index);
+    void changeAudioDriver();
+
 };
 
 #endif // MAINWINDOW_H

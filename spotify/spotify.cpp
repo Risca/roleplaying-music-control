@@ -55,7 +55,7 @@ void Spotify::run()
 
     bool running = true;
     while (running) {
-        SpotifyEvent_t ev;
+        SpotifyEvent_t ev = EVENT_NO_EVENT;
         // Get next event (or timeout)
         if (next_timeout == 0) {
             eq.get(ev);
@@ -125,6 +125,8 @@ void Spotify::run()
                         audioWorker, SLOT(stopStreaming()));
                 connect(&audioThread, SIGNAL(finished()),
                         audioWorker, SLOT(deleteLater()));
+                connect(audioWorker, SIGNAL(streamingFailed()),
+                        this, SIGNAL(audioStreamingFailed()));
                 audioThread.start();
             }
             break;

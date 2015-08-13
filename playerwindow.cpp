@@ -1,6 +1,7 @@
 #include "playerwindow.h"
 #include "ui_playerwindow.h"
 
+#include "sdlaudiodriverchangedialog.h"
 #include "spotify/spotify.h"
 
 PlayerWindow::PlayerWindow(Spotify *spotifyContext, const QString &room, QWidget *parent) :
@@ -13,6 +14,7 @@ PlayerWindow::PlayerWindow(Spotify *spotifyContext, const QString &room, QWidget
 
     connect(&zmqSubscriber, SIGNAL(dataReceived(QByteArray)), this, SLOT(handleZmqActivity(QByteArray)));
     connect(spotify, SIGNAL(songLoaded(QString)), this, SLOT(updateCurrentUri(QString)));
+    connect(spotify, SIGNAL(audioStreamingFailed()), this, SLOT(changeAudioDriver()));
     connect(this, SIGNAL(playTrack(QString)), spotify, SLOT(playURI(QString)));
 
     zmqSubscriber.start();
@@ -41,4 +43,10 @@ void PlayerWindow::updateCurrentUri(const QString &uri)
 {
     currentlyPlayingUri = uri;
     ui->songLabel->setText(Spotify::songNameFromUri(currentlyPlayingUri));
+}
+
+void PlayerWindow::changeAudioDriver()
+{
+    SDLAudioDriverChangeDialog dialog;
+    dialog.exec();
 }

@@ -3,6 +3,7 @@
 
 #include <QTimer>
 
+#include "sdlaudiodriverchangedialog.h"
 #include "spotify/spotify.h"
 
 
@@ -20,6 +21,8 @@ DMWindow::DMWindow(Spotify *spotifyContext, const QString &room, QWidget *parent
 
     connect(spotify, SIGNAL(playlistsUpdated(QStringList)),
             this, SLOT(updatePlaylists(QStringList)));
+    connect(spotify, SIGNAL(audioStreamingFailed()),
+            this, SLOT(changeAudioDriver()));
     connect(ui->comboBox, SIGNAL(currentIndexChanged(int)),
             spotify, SLOT(changePlaylist(int)));
     connect(ui->listWidget, SIGNAL(doubleClicked(QModelIndex)),
@@ -65,4 +68,10 @@ void DMWindow::playTrack(const QModelIndex &index)
 
     QByteArray zmqMsg = topic.toLocal8Bit() + " " + uri.toLocal8Bit();
     zmqPublisher.send(zmqMsg.begin(), zmqMsg.end());
+}
+
+void DMWindow::changeAudioDriver()
+{
+    SDLAudioDriverChangeDialog dialog;
+    dialog.exec();
 }

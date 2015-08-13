@@ -48,6 +48,7 @@ signals:
     void songLoaded(const QString &uri);
     void playlistsUpdated(const QStringList &);
     void currentPlaylistUpdated(const QList<SpotifyTrackInfo> &);
+    void audioStreamingFailed();
 
 private:
     void run();

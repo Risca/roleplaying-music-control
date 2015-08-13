@@ -1,9 +1,11 @@
 #include "spotifyaudioworker.h"
 
 #include <QDebug>
+#include <QInputDialog>
 #include <QIODevice>
 #include <QTimer>
 #include <QVector>
+#include <cstdlib>
 
 #include "spotify.h"
 
@@ -46,9 +48,16 @@ void SpotifyAudioWorker::startStreaming()
     want.callback = SDLAudioCb;
     want.userdata = this;
 
-    dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+    QString deviceName = settings.value("SDL/AudioDevice").toString();
+    if (deviceName.isEmpty()) {
+        dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+    }
+    else {
+        dev = SDL_OpenAudioDevice(deviceName.toStdString().c_str(), 0, &want, &have, 0);
+    }
     if (dev == 0) {
         fprintf(stderr, "Failed to open audio: %s\n", SDL_GetError());
+        emit streamingFailed();
     } else {
         SDL_PauseAudioDevice(dev, 0);
     }

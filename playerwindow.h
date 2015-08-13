@@ -31,6 +31,7 @@ private:
 private slots:
     void handleZmqActivity(const QByteArray& data);
     void updateCurrentUri(const QString &uri);
+    void changeAudioDriver();
 };
 
 #endif // PLAYERWINDOW_H
