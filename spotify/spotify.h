@@ -31,8 +31,7 @@ public:
     Spotify();
     ~Spotify();
 
-    int getNumChannels();
-    int getSampleRate();
+    sp_audioformat getAudioFormat();
     qint64 readAudioData(char * data, qint64 maxSize);
 
     static QString songNameFromUri(const QString &uriString);
@@ -56,8 +55,6 @@ private:
     void changeCurrentlyPlayingSong();
     void changeCurrentPlaylist();
     void logout();
-    void setNumChannels(int newChannelCount);
-    void setSampleRate(int newSampleRate);
     void tryLoadTrack();
     void tryLoadPlaylist();
     QString uriFromTrack(sp_track * track);
@@ -159,9 +156,9 @@ private:
     sp_playlist * currentPlaylist;
     QMutex accessMutex;
     QBuffer audioBuffer;
+    int audioDropouts;
     qint64 writePos, readPos;
-    int numChannels;
-    int sampleRate;
+    sp_audioformat audioFormat;
     sp_session *sp;
     ThreadSafeQueue<SpotifyEvent_t> eq;
     QThread audioThread;

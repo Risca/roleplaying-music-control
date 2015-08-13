@@ -1,10 +1,10 @@
-#include "dmwindow.h"
-#include "playerwindow.h"
 #include <QApplication>
 
+#include "dmwindow.h"
 #include "logindialog.h"
+#include "playerwindow.h"
+#include "sdlengine.h"
 #include "spotify/spotifytrackinfo.h"
-
 
 Spotify *login(bool &dm, QString &room)
 {
@@ -36,6 +36,11 @@ int main(int argc, char *argv[])
     Spotify *spotify = login(dm, room);
     if (0 == spotify) {
         return 0;
+    }
+
+    SDLEngine sdl;
+    if (!sdl.initialized()) {
+        return EXIT_FAILURE;
     }
 
     QScopedPointer<QWidget> main;

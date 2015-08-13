@@ -12,7 +12,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = roleplaying-music-control
 TEMPLATE = app
 
-LIBS += -lspotify -lzmq -lvlc
+LIBS += -lspotify -lzmq
 
 SOURCES += main.cpp\
     spotify/appkey.c \
@@ -35,7 +35,8 @@ HEADERS  += \
     dmwindow.h \
     playerwindow.h \
     zmqsubscriber.h \
-    3pp/cppzmq/zmq.hpp
+    3pp/cppzmq/zmq.hpp \
+    sdlengine.h
 
 FORMS    += \
     logindialog.ui \
@@ -51,3 +52,6 @@ win32: LIBS += -L$$PWD/../../../../libspotify-12.1.51-win32-release/lib/ -llibsp
 
 INCLUDEPATH += $$PWD/../../../../libspotify-12.1.51-win32-release/include
 DEPENDPATH += $$PWD/../../../../libspotify-12.1.51-win32-release/include
+
+unix: CONFIG += link_pkgconfig
+unix: PKGCONFIG += sdl2

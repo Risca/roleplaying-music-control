@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QTimer>
-#include <vlc/vlc.h>
+#include <SDL2/SDL.h>
 
 class QAudioOutput;
 class QIODevice;
@@ -19,30 +19,14 @@ public:
 
 public slots:
     void startStreaming();
+    void stopStreaming();
 
 private:
     Spotify * spotify;
-    libvlc_instance_t * vlc;
-    libvlc_media_player_t *mediaPlayer;
-    int64_t ts;
+    SDL_AudioDeviceID dev;
 
-    static int ImemGetCb (void *data,
-                          const char *cookie,
-                          int64_t *dts,
-                          int64_t *pts,
-                          unsigned *flags,
-                          size_t * bufferSize,
-                          void ** buffer);
-    int ImemGet (int64_t *dts,
-                 int64_t *pts,
-                 unsigned *flags,
-                 size_t * bufferSize,
-                 void ** buffer);
-    static int ImemReleaseCb (void *data,
-                              const char *cookie,
-                              size_t bufferSize,
-                              void * buffer);
-    int ImemRelease (size_t bufferSize, void *buffer);
+    static void SDLCALL SDLAudioCb (void *userdata, Uint8 * stream, int len);
+    void audioCb(Uint8 * stream, int len);
 };
 
 #endif // SPOTIFYAUDIOWORKER_H

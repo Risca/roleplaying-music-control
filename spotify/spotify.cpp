@@ -21,10 +21,9 @@ Spotify::Spotify() :
     currentTrack(0),
     currentPlaylistIdx(-1),
     currentPlaylist(0),
+    audioDropouts(0),
     writePos(0),
     readPos(0),
-    numChannels(0),
-    sampleRate(0),
     sp(0)
 {
     Spotify_Wrapper::init(this);
@@ -38,6 +37,11 @@ Spotify::~Spotify()
     }
     audioThread.quit();
     audioThread.wait();
+}
+
+sp_audioformat Spotify::getAudioFormat()
+{
+    return audioFormat;
 }
 
 void Spotify::run()
@@ -117,6 +121,8 @@ void Spotify::run()
                 audioWorker->moveToThread(&audioThread);
                 connect(&audioThread, SIGNAL(started()),
                         audioWorker, SLOT(startStreaming()));
+                connect(&audioThread, SIGNAL(finished()),
+                        audioWorker, SLOT(stopStreaming()));
                 connect(&audioThread, SIGNAL(finished()),
                         audioWorker, SLOT(deleteLater()));
                 audioThread.start();
@@ -266,28 +272,13 @@ void Spotify::logout()
     }
 }
 
-void Spotify::setNumChannels(int newChannelCount)
-{
-    QMutexLocker locker(&accessMutex);
-    numChannels = newChannelCount;
-}
-
-int Spotify::getNumChannels()
-{
-    QMutexLocker locker(&accessMutex);
-    return numChannels;
-}
-
-int Spotify::getSampleRate()
-{
-    QMutexLocker locker(&accessMutex);
-    return sampleRate;
-}
-
 qint64 Spotify::readAudioData(char *data, qint64 maxSize)
 {
     QMutexLocker locker(&accessMutex);
     int toRead = qMin(writePos - readPos, maxSize);
+    if (toRead != maxSize) {
+        audioDropouts++;
+    }
     audioBuffer.seek(readPos);
     int read =  audioBuffer.read(data, toRead);
     if (read < 0) {
@@ -359,12 +350,6 @@ void Spotify::playURI(const QString &URI)
     eq.put(EVENT_URI_CHANGED);
 }
 
-void Spotify::setSampleRate(int newSampleRate)
-{
-    QMutexLocker locker(&accessMutex);
-    sampleRate = newSampleRate;
-}
-
 void Spotify::tryLoadTrack()
 {
     sp_error err;
@@ -388,6 +373,10 @@ void Spotify::tryLoadTrack()
         fprintf(stderr, "Failed to unload player: 0x%02X %s\n",
                 (unsigned)err, sp_error_message(err));
         return;
+    }
+
+    if (audioThread.isRunning()) {
+        audioThread.quit();
     }
 
     err = sp_session_player_load(sp, nextTrack);
@@ -521,8 +510,9 @@ int Spotify::musicDeliveryCb(sp_session *, const sp_audioformat *format,
 
     QMutexLocker locker(&accessMutex);
 
-    numChannels = format->channels;
-    sampleRate = format->sample_rate;
+    audioFormat.channels = format->channels;
+    audioFormat.sample_rate = format->sample_rate;
+    audioFormat.sample_type = format->sample_type;
 
     if (!audioBuffer.isOpen()) {
         audioBuffer.open(QIODevice::ReadWrite);
@@ -559,10 +549,11 @@ void Spotify::stopPlaybackCb(sp_session *)
 void Spotify::getAudioBufferStatsCb(sp_session *, sp_audio_buffer_stats *stats)
 {
     QMutexLocker locker(&accessMutex);
-    stats->stutter = 0; /// @todo Fill in number of audio dropouts
+    stats->stutter = audioDropouts;
+    audioDropouts = 0;
     // I think it wants number of frames in buffer
-    if (numChannels) {
-        stats->samples = (writePos - readPos) / (sizeof(int16_t) * numChannels);
+    if (audioFormat.channels) {
+        stats->samples = (writePos - readPos) / (sizeof(int16_t) * audioFormat.channels);
     }
 }
 
